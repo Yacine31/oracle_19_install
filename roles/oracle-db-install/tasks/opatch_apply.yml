@@ -46,7 +46,7 @@
     tags: patch_db
     
   - name: Résultat de l'installation via OPatch
-    shell: "{{ oracle_home }}/OPatch/opatch lsinventory"
+    shell: "{{ oracle_home }}/OPatch/opatch lspatches"
     become: true
     become_method: su
     become_user: oracle
