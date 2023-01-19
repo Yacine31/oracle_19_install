@@ -1,0 +1,30 @@
+---
+  - name: Téléchrgement des binaires 
+    become: yes
+    get_url:
+      url: https://kutt.axiome.io/m7EQg2p
+      dest: /u01/sources/{{oracle_zip_filename}}
+      mode: 0755
+      group: oinstall
+      owner: oracle
+    tags: download_sw
+
+  - name: Téléchrgement OPatch
+    become: yes
+    get_url:
+      url : https://kutt.axiome.io/opatch
+      dest: /u01/sources/{{opatch_file}}
+      mode: 0755
+      group: oinstall
+      owner: oracle
+    tags: download_sw
+
+  - name: Téléchrgement du PSU
+    become: yes
+    get_url:
+      url: https://kutt.axiome.io/db_ru
+      dest: /u01/sources/{{psu_file}}
+      mode: 0755
+      group: oinstall
+      owner: oracle
+    tags: download_sw
