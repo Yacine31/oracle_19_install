@@ -1,24 +1,23 @@
-=====
+----------------------
 INSTALLATION ANSIBLE DIRECT SUR LA MACHINE
-=====
+----------------------
 
 yum install -y oracle-epel-release-el8
-yum install -y git wget ansible
+yum install -y git ansible
 
 cloner le repository :
-======================
-# git clone git clone https://github.com/Yacine31/oracle_ansible
-# cd oracle_ansible/
+----------------------
+# git clone git clone https://github.com/Yacine31/oracle_19_install
+# cd oracle_19_install
 
 3 books à jour : 
-================
+----------------
 - oracle-db-preinstall.yml  => configuration de Linux pour une installation Oracle
-- oracle-db-install.yml     => installation d'Oracle 19 SE
+- oracle-db-install.yml     => installation d'Oracle 19 EE ou SE
 - oracle-db-postinstall.yml => ajout des scripts d'exploitation
 
 Exécution :
-===========
-cd oracle_ansible
+-----------
 ansible-playbook -i hosts oracle-db-preinstall.yml 
 
 Les valuers par défaut sont dans : 
@@ -34,43 +33,7 @@ Pour l'exécuter avec des variables différentes :
 
 ansible-playbook -i hosts oracle-db-preinstall.yml --extra-vars "oracle_version=19c oracle_base=/opt/oracle oracle_home=/opt/oracle/product/19c/dbhome_1"
 
-Mise à jour :
-=============
-Pour mettre à jour le contenu du répertoire suite à une mise à jour :
-cd oracle_ansible/
-git pull
 
-=====
-deux books : 
-- configure_OS
-- install-oracle-sw
-- fichier hosts avec les ip/nom des serveurs cibles
-
-Pour une première configuration, faire ssh-copy-id root@ip => pour copier la clé ssh vers la cible
-
-Le premier configure l'OS seulement
-Le second va créer les users (grid et/ou oracle) et faire l'installation DB et/ou GI
-
-
-Pour la configuration de l'Os tout est automatisé, rien à configurer juste exécuter le book :
-
-# ansible-playbook -i hosts book-configure_OS.yml
-
-
-
-Pour l'installation GI + DB :
-aller dans le fichier roles/install-oracle-sw/vars/main.yml
-
-1 - Les chemins vers les sources d'Oracle :
-    oracle_sw_source_local: "/media/sf_Oracle_Software/Oracle_Database"
-    et voir s'il faut adapter aussi les variables : gi_software et db_software
-2 - Ensuite :
-    install_grid_infra: true ou false
-    install_database: true ou false
-    gi_version: "11.2.0.4" ou "12.1.0.2"
-    db_version: "12.1.0.2" ou "11.2.0.4"
-
-3 - executer le book : ansible-playbook -i hosts book-install-oracle-sw.yml
 
 
 
