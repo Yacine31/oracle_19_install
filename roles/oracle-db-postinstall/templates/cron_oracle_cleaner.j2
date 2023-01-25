@@ -1,13 +1,17 @@
 #!/bin/sh
 
-/usr/bin/logger -t ora_db_clean_xml "Clean xml file older than 30 days from {{ oracle_base }}/diag/rdbms/"
-find {{ oracle_base }}/diag/rdbms/ -iname "*xml"  -mtime +30 -print -delete | logger -t oracle_clean_xml
+export DIAG_RDBMS={{ oracle_base }}/diag/rdbms/
+export DIAG_LSNR={{ oracle_base }}/diag/tnslsnr/
+export DAYS=30
 
-/usr/bin/logger -t ora_lsnr_clean_xml "Clean xml file older than 30 days from {{ oracle_base }}/diag/tnslsnr/"
-find {{ oracle_base }}/diag/tnslsnr/ -iname "*xml"  -mtime +30 -print -delete | logger -t oracle_clean_xml
+/usr/bin/logger -t ora_db_clean_xml "Clean xml file older than $DAYS days from ${DIAG_RDBMS}"
+find ${DIAG_RDBMS} -iname "*xml"  -mtime +$DAYS -print -delete | logger -t oracle_clean_xml
 
-/usr/bin/logger -t ora_db_clean_trc "Clean trc file older than 30 days from {{ oracle_base }}/diag/rdbms/"
-find {{ oracle_base }}/diag/rdbms/ -iname "*trc"  -mtime +30 -print -delete | logger -t oracle_clean_trc
+/usr/bin/logger -t ora_lsnr_clean_xml "Clean xml file older than $DAYS days from ${DIAG_LSNR}"
+find ${DIAG_LSNR} -iname "*xml"  -mtime +$DAYS -print -delete | logger -t oracle_clean_xml
 
-/usr/bin/logger -t ora_db_clean_trm "Clean trm file older than 30 days from {{ oracle_base }}/diag/rdbms/"
-find {{ oracle_base }}/diag/rdbms/ -iname "*trm"  -mtime +30 -print -delete | logger -t oracle_clean_trm
+/usr/bin/logger -t ora_db_clean_trc "Clean trc file older than $DAYS days from ${DIAG_RDBMS}"
+find ${DIAG_RDBMS} -iname "*trc"  -mtime +$DAYS -print -delete | logger -t oracle_clean_trc
+
+/usr/bin/logger -t ora_db_clean_trm "Clean trm file older than $DAYS days from ${DIAG_RDBMS}"
+find ${DIAG_RDBMS} -iname "*trm"  -mtime +$DAYS -print -delete | logger -t oracle_clean_trm
