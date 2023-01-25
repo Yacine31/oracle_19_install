@@ -7,7 +7,8 @@ yum install -y git ansible
 
 cloner le repository :
 ----------------------
-# git clone git clone https://github.com/Yacine31/oracle_19_install
+(compte root)
+# git clone https://github.com/Yacine31/oracle_19_install
 # cd oracle_19_install
 
 3 books à jour : 
@@ -32,9 +33,3 @@ Les valuers par défaut sont dans :
 Pour l'exécuter avec des variables différentes : 
 
 ansible-playbook -i hosts oracle-db-preinstall.yml --extra-vars "oracle_version=19c oracle_base=/opt/oracle oracle_home=/opt/oracle/product/19c/dbhome_1"
-
-
-
-
-
-
