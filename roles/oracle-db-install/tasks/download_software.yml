@@ -11,26 +11,36 @@
 #      validate_certs: no
 #    tags: download_sw
 
+#  - name: Téléchargement OPatch
+#    become: yes
+#    get_url:
+#      url : https://kutt.axiome.io/opatch
+#      dest: /u01/sources/{{opatch_file}}
+#      mode: 0755
+#      group: oinstall
+#      checksum: sha256:1d5f9b244a12f24efa16f851107f7b62426f10aa303ebb878928db6a8ca95a73
+#      validate_certs: no
+#      owner: oracle
+#      timeout: 120
+#    tags: download_opatch
+
   - name: Téléchargement OPatch
-    become: yes
-    get_url:
-      url : https://kutt.axiome.io/opatch
-      dest: /u01/sources/{{opatch_file}}
-      mode: 0755
-      group: oinstall
-      checksum: sha256:1d5f9b244a12f24efa16f851107f7b62426f10aa303ebb878928db6a8ca95a73
-      validate_certs: no
-      owner: oracle
+    shell: wget --no-check-certificate https://kutt.axiome.io/opatch -O /u01/sources/{{opatch_file}}
     tags: download_opatch
 
+#  - name: Téléchargement du PSU
+#    become: yes
+#    get_url:
+#      url: https://kutt.axiome.io/db_ru
+#      dest: /u01/sources/{{psu_file}}
+#      mode: 0755
+#      group: oinstall
+#      owner: oracle
+#      checksum: sha256:8628ba2ecc6a9d45e803e213eefafa2234cbd4e0e4a14c17bc46168bc7e155c8
+#      validate_certs: no
+#      timeout: 600
+#    tags: download_sw
+
   - name: Téléchargement du PSU
-    become: yes
-    get_url:
-      url: https://kutt.axiome.io/db_ru
-      dest: /u01/sources/{{psu_file}}
-      mode: 0755
-      group: oinstall
-      owner: oracle
-      checksum: sha256:8628ba2ecc6a9d45e803e213eefafa2234cbd4e0e4a14c17bc46168bc7e155c8
-      validate_certs: no
-    tags: download_sw
+    shell: wget --no-check-certificate https://kutt.axiome.io/db_ru -O /u01/sources/{{psu_file}}
+    tags: download_ru
