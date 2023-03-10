@@ -8,6 +8,7 @@
 #       13/10/2015 : YAO - ajout des params en ligne de commande
 #       03/05/2016 : YAO - adaptation a l'environnement SOM
 #       04/05/2016 : YAO - ajout du niveau de sauvegarde : incrementale 0 ou 1
+#       09/11/2022 : YAO - backup simple => db full
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -21,22 +22,22 @@ f_init() {
         # les différents répertoires
         export SCRIPTS_DIR=/home/oracle/scripts
         export BKP_LOG_DIR=$SCRIPTS_DIR/logs
-        export BKP_LOCATION=/orasave/$(hostname)_${ORACLE_SID}/backup_rman
+        export BKP_LOCATION=/sauve_rman/$(hostname)_${ORACLE_SID}/backup_rman
 
         # nombre de sauvegarde RMAN en ligne à garder
         export BKP_REDUNDANCY=1
         export DATE_JOUR=$(date +%Y.%m.%d-%H.%M)
-        export BKP_LOG_FILE=${BKP_LOG_DIR}/backup_rman_${ORACLE_SID}_${BKP_TYPE}_${DATE_JOUR}.log
-        export RMAN_CMD_FILE=${SCRIPTS_DIR}/rman_cmd_file_${ORACLE_SID}_${BKP_TYPE}.rman
+        export BKP_LOG_FILE=${BKP_LOG_DIR}/backup_rman_${ORACLE_SID}_${DATE_JOUR}.log
+        export RMAN_CMD_FILE=${BKP_LOG_DIR}/rman_cmd_file_${ORACLE_SID}.rman
 
         # nombre de jours de conservation des logs de la sauvegarde
         export BKP_LOG_RETENTION=15
 
-        # nombre de jours de conservation des archivelog sur disque
-        export ARCHIVELOG_RETENTION=1
-
         # nombre de canaux à utiliser
-        export PARALLELISM=3
+        export PARALLELISM=1
+
+        # mail pour envoyer les erreurs
+        MAIL_RCPT="support@axiome.io,yacine.oumghar@gmail.com"
 
 } # f_init
 
@@ -46,16 +47,9 @@ f_init() {
 f_help() {
 
         cat <<CATEOF
-syntax : $O -s ORACLE_SID -t DB|AL -l Full|Incr
+syntax : $O -s ORACLE_SID
 
 -s ORACLE_SID
-
--t
-        -t DB => backup full (database + archivelog)
-        -t AL => backup des archivelog seulement
-
--l      -t full => backup complet
-        -t incr => backup incrementale 1
 
 CATEOF
 exit $1
@@ -74,17 +68,6 @@ f_print()
 # fonction de traitement des options de la ligne de commande
 #------------------------------------------------------------------------------
 f_options() {
-
-        case ${BKP_TYPE} in
-        DB)
-                        BKP_DB_PLUS_AL=TRUE;
-        ;;
-        AL)
-                        BKP_DB_PLUS_AL=FALSE;
-        ;;
-        *) f_help 2;
-        ;;
-        esac
 
         case ${BKP_LEVEL} in
         "FULL")
@@ -106,14 +89,10 @@ f_options() {
 
 # s, l et t suivis des : => argument attendu
 # h => pas d'argument attendu
-while getopts s:t:l:h o
+while getopts s:h o
 do
         case $o in
-        t) BKP_TYPE=$OPTARG;
-        ;;
         s) ORACLE_SID=$OPTARG;
-        ;;
-        l) BKP_LEVEL=$OPTARG;
         ;;
         h) f_help 0;
         ;;
@@ -122,16 +101,13 @@ do
         esac
 done
 
+#------------------------------------------------------------------------------
 # traitement de la ligne de commande
+#------------------------------------------------------------------------------
 
-[ "${BKP_TYPE}" ] || f_help 2;
-[ "${BKP_LEVEL}" ] || BKP_LEVEL=FULL;
 [ "${ORACLE_SID}" ] || f_help 2;
 
-BKP_LEVEL=$(echo ${BKP_LEVEL} | tr [a-z] [A-Z])
-BKP_TYPE=$(echo ${BKP_TYPE} | tr [a-z] [A-Z])
-
-f_options
+# f_options
 
 # positionner les variables d'environnement ORACLE
 export ORACLE_SID
@@ -139,70 +115,69 @@ ORAENV_ASK=NO
 PATH=/usr/local/bin:$PATH
 . oraenv -s
 
+#------------------------------------------------------------------------------
 # inititalisation des variables d'environnement
+#------------------------------------------------------------------------------
 f_init
 
+#------------------------------------------------------------------------------
 # si ce n'est pas le user oracle qui lance le script, on quitte
+#------------------------------------------------------------------------------
 if (test `whoami` != $ORACLE_OWNER)
 then
         echo
         echo "-----------------------------------------------------"
         echo "Vous devez etre $ORACLE_OWNER pour lancer ce script"
-        echo
         echo "-----------------------------------------------------"
         exit 2
 fi
 
+#------------------------------------------------------------------------------
 # initialisation des chemins, s'ils n'existent pas ils seront créés par la commande install
+#------------------------------------------------------------------------------
 install -d ${BKP_LOCATION}
 install -d ${BKP_LOG_DIR}
 
+#------------------------------------------------------------------------------
 # génération du script de la sauvegarde RMAN
+#------------------------------------------------------------------------------
 echo "
 run {
 CONFIGURE DEVICE TYPE DISK PARALLELISM $PARALLELISM ;
 CONFIGURE RETENTION POLICY TO REDUNDANCY ${BKP_REDUNDANCY};
-" > ${RMAN_CMD_FILE}
-
-# si sauvegarde DB (-t db) on ajoute cette ligne
-if [ "${BKP_DB_PLUS_AL}" == "TRUE" ]; then
-
-        # si backup incrementale
-        if [ "${BKP_FULL}" == "TRUE" ]; then
-                echo "
-                BACKUP DEVICE TYPE DISK FORMAT '${BKP_LOCATION}/data_%T_%t_%s_%p' TAG 'DATA_${DATE_JOUR}' as compressed backupset database;
-                " >> ${RMAN_CMD_FILE}
-        else
-                echo "
-                BACKUP INCREMENTAL LEVEL 1 DEVICE TYPE DISK FORMAT '${BKP_LOCATION}/data_%T_%t_%s_%p' TAG 'DATA_${DATE_JOUR}' as compressed backupset database;
-                " >> ${RMAN_CMD_FILE}
-        fi # if BKP_FULL
-
-fi # if BKP_DB_PLUS_AL
-
-# on continue avec la partie commune : backup des archivelog + spfile + controlfile
-echo "
+BACKUP DEVICE TYPE DISK FORMAT '${BKP_LOCATION}/data_%T_%t_%s_%p' TAG 'DATA_${DATE_JOUR}' AS COMPRESSED BACKUPSET DATABASE;
 SQL 'ALTER SYSTEM ARCHIVE LOG CURRENT';
-BACKUP DEVICE TYPE DISK FORMAT '${BKP_LOCATION}/arch_%T_%t_%s_%p' TAG 'ARCH_${DATE_JOUR}' AS COMPRESSED BACKUPSET ARCHIVELOG
-UNTIL TIME 'SYSDATE-${ARCHIVELOG_RETENTION}' ALL DELETE ALL INPUT;
-
+BACKUP DEVICE TYPE DISK FORMAT '${BKP_LOCATION}/arch_%T_%t_%s_%p' TAG 'ARCH_${DATE_JOUR}' AS COMPRESSED BACKUPSET ARCHIVELOG ALL DELETE ALL INPUT;
 BACKUP CURRENT CONTROLFILE FORMAT '${BKP_LOCATION}/control_%T_%t_%s_%p' TAG 'CTLFILE_${DATE_JOUR}';
-
 DELETE NOPROMPT OBSOLETE;
 DELETE NOPROMPT EXPIRED BACKUPSET;
-
-SQL 'ALTER DATABASE BACKUP CONTROLFILE TO TRACE';
-SQL \"CREATE PFILE=''${BKP_LOCATION}/pfile_${ORACLE_SID}_$(date +%Y.%m.%d).ora'' FROM SPFILE\";
+SQL \"ALTER DATABASE BACKUP CONTROLFILE TO TRACE AS ''${BKP_LOCATION}/${ORACLE_SID}_control_file.trc'' REUSE\";
+SQL \"CREATE PFILE=''${BKP_LOCATION}/pfile_${ORACLE_SID}.ora'' FROM SPFILE\";
 }
-" >> ${RMAN_CMD_FILE}
+" > ${RMAN_CMD_FILE}
 
+#------------------------------------------------------------------------------
 # Execution du script RMAN
+#------------------------------------------------------------------------------
 f_print "------------------------- DEBUT DE LA BACKUP -------------------------"
 ${ORACLE_HOME}/bin/rman target / cmdfile=${RMAN_CMD_FILE} log=${BKP_LOG_FILE}
 
+#------------------------------------------------------------------------------
+# Mail si des erreurs dans le fichier de sauvegarde
+#------------------------------------------------------------------------------
+ERR_COUNT=$(egrep "^RMAN-[0-9]*|^ORA-[0-9]:" ${BKP_LOG_FILE} | wc -l)
+SUBJECT="$(hostname)-${ORACLE_SID} : RMAN Backup"
+
+if [ ${ERR_COUNT} -ne 0 ]; then
+        mutt -s $SUBJECT ${MAIL_RCPT} < ${BKP_LOG_FILE}
+else
+        mutt -s $SUBJECT ${MAIL_RCPT} < ${BKP_LOG_FILE}
+fi
+
+#------------------------------------------------------------------------------
 # Nettoyage auto des logs : durée de concervation déterminée par la variable : ${BKP_LOG_RETENTION}
+#------------------------------------------------------------------------------
 f_print "------------------------- NETTOYAGE DES LOGS -------------------------"
 find ${BKP_LOG_DIR} -type f -iname "backup_rman_${BKP_TYPE}*.log" -mtime +${BKP_LOG_RETENTION} -exec rm -fv "{}" \; >> $BKP_LOG_FILE
 
 f_print "------------------------- BACKUP ${BKP_TYPE} TERMINE -------------------------"
-
