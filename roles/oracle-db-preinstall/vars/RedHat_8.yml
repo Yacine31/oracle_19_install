@@ -16,8 +16,10 @@
    - elfutils-libelf-devel
    - fontconfig-devel
    - fstrm
+   - gcc
    - glibc
    - glibc-devel
+   - glibc-devel.i686
    - glibc-headers
    - gssproxy
    - htop
