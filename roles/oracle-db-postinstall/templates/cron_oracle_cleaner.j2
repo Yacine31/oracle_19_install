@@ -15,3 +15,7 @@ find ${DIAG_RDBMS} -iname "*trc"  -mtime +$DAYS -print -delete | logger -t oracl
 
 /usr/bin/logger -t ora_db_clean_trm "Clean trm file older than $DAYS days from ${DIAG_RDBMS}"
 find ${DIAG_RDBMS} -iname "*trm"  -mtime +$DAYS -print -delete | logger -t oracle_clean_trm
+
+# suppression des fichiers .aud qui s'acumulent dans {{oracle_base}}/admin
+/usr/bin/logger -t ora_db_clean_aud "Clean audit file older than 30 days from {{oracle_base}}/admin"
+find {{oracle_base}}/admin/ -iname "*.aud"  -mtime +30 -print -delete | logger -t oracle_clean_aud
