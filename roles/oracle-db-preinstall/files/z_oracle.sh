@@ -66,3 +66,7 @@ fi
 if [ -t 0 ]; then
    stty intr ^C
 fi
+
+# append history immediatly
+shopt -s histappend
+PROMPT_COMMAND="history -a;$PROMPT_COMMAND"
