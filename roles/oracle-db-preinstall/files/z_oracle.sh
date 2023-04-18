@@ -62,3 +62,7 @@ if [ $USER = "grid" ] || [ $USER = "oracle" ] || [ $USER = "root" ] ; then
     fi
 fi
 
+# Preventing Installation Errors Caused by Terminal Output Commands
+if [ -t 0 ]; then
+   stty intr ^C
+fi
