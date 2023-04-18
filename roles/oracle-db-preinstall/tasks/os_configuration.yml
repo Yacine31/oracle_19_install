@@ -13,6 +13,14 @@
     service: name=chronyd  state=started  enabled=yes
     ignore_errors: true
 
+  # ---------------------------------------------------
+  # Activation du nscd : Name Service Cache Daemon pour palier aux
+  # problèmes de perte de DNS
+  # ---------------------------------------------------
+  - name: activate nscd
+    service: name=nscd  state=started  enabled=yes
+    ignore_errors: true
+
   # --------------------------------------------------- 
   # configuration Linux : Selinux
   # ---------------------------------------------------

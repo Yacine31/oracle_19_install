@@ -12,6 +12,7 @@
    - bind-utils
    - binutils
    - chrony
+   - compat-libcap1
    - elfutils-libelf
    - elfutils-libelf-devel
    - fontconfig-devel
@@ -27,9 +28,12 @@
    - keyutils
    - ksh
    - libaio
+   - libaio.i686
    - libaio-devel
+   - libaio-devel.i686
    - libdmx
    - libgcc
+   - libgcc.i686
    - libibverbs
    - libICE
    - libmaxminddb
@@ -37,8 +41,10 @@
    - libpkgconf
    - librdmacm
    - libSM
+   - libstdc++.i686
    - libstdc++
    - libstdc++-devel
+   - libstdc++-devel.i686
    - libverto-libevent
    - libX11
    - libX11-common
@@ -49,12 +55,14 @@
    - libxcrypt-devel
    - libXext
    - libXi
+   - libXi.i686
    - libXinerama
    - libXmu
    - libXrandr
    - libXrender
    - libXt
    - libXtst
+   - libXtst.i686
    - libXv
    - libXxf86dga
    - libXxf86misc
