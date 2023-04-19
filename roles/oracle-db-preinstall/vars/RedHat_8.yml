@@ -12,7 +12,6 @@
    - bind-utils
    - binutils
    - chrony
-   - compat-libcap1
    - elfutils-libelf
    - elfutils-libelf-devel
    - fontconfig-devel
