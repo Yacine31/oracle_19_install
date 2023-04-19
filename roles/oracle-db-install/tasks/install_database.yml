@@ -4,7 +4,11 @@
 #
 
   - name: Création du répertoire oracle
-    file: dest={{ item }} mode=775 owner=oracle group=oinstall state=directory recurse=yes
+    shell: |
+      mkdir -p {{ item }}
+      chown -R oracle:oinstall /$(echo {{ item }} | cut -d"/" -f2)
+      chmod -R 775 /$(echo {{ item }} | cut -d"/" -f2)
+    # file: dest={{ item }} mode=775 owner=oracle group=oinstall state=directory recurse=yes
     with_items:
       - "{{ oracle_base }}"
       - "{{ oracle_inventory }}"
@@ -31,7 +35,7 @@
     tags: checkifexists
 
   - name: Téléchargement des binaires Oracle 
-    shell: wget --no-check-certificate https://kutt.axiome.io/m7EQg2p -O /u01/sources/{{oracle_zip_filename}}
+    shell: wget --no-check-certificate https://kutt.axiome.io/m7EQg2p -O {{ oracle_sources }}/{{oracle_zip_filename}}
     tags: download_sw
 
 #  - name: Téléchargement des binaires Oracle 
