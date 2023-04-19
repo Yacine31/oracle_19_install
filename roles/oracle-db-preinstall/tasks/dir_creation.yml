@@ -17,8 +17,8 @@
   - name: Création du répertoire oracle
     shell: |
       mkdir -p {{ item }}
-      chown -R oracle:oinstall {{ item }}
-      chmod -R 775 {{ item }}
+      chown -R oracle:oinstall /$(echo {{ item }} | cut -d"/" -f2)
+      chmod -R 775 /$(echo {{ item }} | cut -d"/" -f2)
     # file: path={{ item }} mode=775 owner=oracle group=oinstall state=directory recurse=yes
     with_items:
       - "{{ oracle_base }}"
