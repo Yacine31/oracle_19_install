@@ -15,7 +15,7 @@
 # ./runInstaller
 
   - name: Création du répertoire oracle
-    file: dest={{ item }} mode=775 owner=oracle group=oinstall state=directory recurse=yes
+    file: path={{ item }} mode=775 owner=oracle group=oinstall state=directory recurse=yes
     with_items:
       - "{{ oracle_base }}"
       - "{{ oracle_inventory }}"
