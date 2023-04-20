@@ -41,20 +41,36 @@
   # ajout de script oracle pour les backups rman
   # ---------------------------------------------------
 
-  - name: Copie du script backup_rman.sh dans {{ scripts_dir }}
-    copy: src=backup_rman.sh dest={{ scripts_dir }}/ owner=oracle group=oinstall mode=755
+  #  - name: Copie du script backup_rman.sh dans {{ scripts_dir }}
+  #    copy: src=backup_rman.sh dest={{ scripts_dir }}/ owner=oracle group=oinstall mode=755  #
 
-  - name: Copie du script backup_rman_alldb.sh dans {{ scripts_dir }}
-    copy: src=backup_rman_alldb.sh dest={{ scripts_dir }}/ owner=oracle group=oinstall mode=755
+  #  - name: Copie du script backup_rman_alldb.sh dans {{ scripts_dir }}
+  #    copy: src=backup_rman_alldb.sh dest={{ scripts_dir }}/ owner=oracle group=oinstall mode=755
 
-  - name: Création du répertoire de sauvegarde RMAN /u04
+  - name: Copie du script RMAN et Datapump dans {{ scripts_dir }}
+    copy: src={{ item }} dest={{ scripts_dir }}/ owner=oracle group=oinstall mode=755
+    loop: 
+      - backup_rman.sh
+      - backup_rman_alldb.sh
+      - export_datapump.sh
+      - export_datapump_alldb.sh
+    tags: backup
+
+  - name: Création de répertoire de sauvegarde RMAN et Datapump /u04
     file: dest=/u04 mode=775 owner=oracle group=oinstall state=directory recurse=yes
+    tags: backup
 
   - name: installation du package mutt pour envoyer des mails depuis le shell
     yum:  name=mutt state=latest disable_gpg_check=yes
+    tags: backup
 
-  - name: Exécuter le script de backup RMAN tous les jours à 22h44
+  - name: Ajout de la tâche cron RMAN
     cron: name="Backup RMAN des bases ouvertes et en AL" user=oracle minute="44" hour="23" job="sh {{ scripts_dir }}/backup_rman_alldb.sh 2>&1 1>/dev/null"
+    tags: backup
+
+  - name: Ajout de la tâche cron Datapump
+    cron: name="Export Datapump des bases ouvertes" user=oracle minute="44" hour="21" job="sh {{ scripts_dir }}/export_datapump_alldb.sh 2>&1 1>/dev/null"
+    tags: backup
 
   # --------------------------------------------------- 
   # configuration Linux : config oracle pour logrotate

@@ -113,7 +113,7 @@ done
 export ORACLE_SID
 ORAENV_ASK=NO
 PATH=/usr/local/bin:$PATH
-. oraenv -s
+. oraenv -s >/dev/null
 
 #------------------------------------------------------------------------------
 # inititalisation des variables d'environnement
