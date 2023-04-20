@@ -22,7 +22,7 @@ f_init() {
         # les différents répertoires
         export SCRIPTS_DIR=/home/oracle/scripts
         export BKP_LOG_DIR=$SCRIPTS_DIR/logs
-        export BKP_LOCATION=/sauve_rman/$(hostname)_${ORACLE_SID}/backup_rman
+        export BKP_LOCATION=/u04/rman/${ORACLE_SID}
 
         # nombre de sauvegarde RMAN en ligne à garder
         export BKP_REDUNDANCY=1

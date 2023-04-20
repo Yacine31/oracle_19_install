@@ -44,6 +44,15 @@
   - name: Copie du script backup_rman.sh dans {{ scripts_dir }}
     copy: src=backup_rman.sh dest={{ scripts_dir }}/ owner=oracle group=oinstall mode=755
 
+  - name: Création du répertoire de sauvegarde RMAN /u04
+    file: dest=/u04 mode=775 owner=oracle group=oinstall state=directory recurse=yes
+
+  - name: installation du package mutt pour envoyer des mails depuis le shell
+    yum:  name=mutt state=latest disable_gpg_check=yes
+
+  - name: Exécuter le script de backup RMAN tous les jours à 22h44
+    cron: name="Backup RMAN" minute="44" hour="22" job="sh {{ scripts_dir }}/backup_rman.sh 2>&1 1>/dev/null"
+
   # --------------------------------------------------- 
   # configuration Linux : config oracle pour logrotate
   # Gestion des fichiers logs seulement (archivage et réinitialisation)
