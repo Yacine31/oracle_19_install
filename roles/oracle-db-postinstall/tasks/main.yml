@@ -51,7 +51,7 @@
     yum:  name=mutt state=latest disable_gpg_check=yes
 
   - name: Exécuter le script de backup RMAN tous les jours à 22h44
-    cron: name="Backup RMAN" minute="44" hour="22" job="sh {{ scripts_dir }}/backup_rman.sh 2>&1 1>/dev/null"
+    cron: name="Backup RMAN" user=oracle minute="44" hour="22" job="sh {{ scripts_dir }}/backup_rman.sh 2>&1 1>/dev/null"
 
   # --------------------------------------------------- 
   # configuration Linux : config oracle pour logrotate
