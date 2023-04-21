@@ -42,8 +42,9 @@
 
   # ---------------------------------------------------
   # configuration Linux : Création des répertoires Oracle
+  # => la creation des répertoires se fait dans le role db-install
   # ---------------------------------------------------
-  - include: dir_creation.yml
+  # - include: dir_creation.yml
   
 
 

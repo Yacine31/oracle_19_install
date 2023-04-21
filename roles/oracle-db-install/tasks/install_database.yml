@@ -14,8 +14,10 @@
       - "{{ oracle_inventory }}"
       - "{{ oracle_home }}"
       - "{{ oracle_sources }}"
+      - "{{ oracle_oradata }}"
+      - "{{ oracle_fra }}"
     tags: createdir
-
+    
   - name: vérification de l espace disque disponible sur oracle_base
     action: shell df -P {{ oracle_base }} | awk 'END { print $4 }'
     register: u01size
