@@ -18,7 +18,14 @@
   # problèmes de perte de DNS
   # ---------------------------------------------------
   - name: activate nscd
-    service: name=nscd  state=started  enabled=yes
+    service: name=nscd state=started  enabled=yes
+    ignore_errors: true
+
+  # ---------------------------------------------------
+  # Activation de rsyslog : non configuré parfois sur Oracle Linux
+  # ---------------------------------------------------
+  - name: activate rsyslog
+    service: name=rsyslog state=started  enabled=yes
     ignore_errors: true
 
   # --------------------------------------------------- 
