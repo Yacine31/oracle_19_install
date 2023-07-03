@@ -11,11 +11,10 @@ cloner le repository :
 # git clone https://github.com/Yacine31/oracle_19_install
 # cd oracle_19_install
 
-3 books à jour : 
+2 books à jour : 
 ----------------
 - oracle-db-preinstall.yml  => configuration de Linux pour une installation Oracle
-- oracle-db-install.yml     => installation d'Oracle 19 EE ou SE
-- oracle-db-postinstall.yml => ajout des scripts d'exploitation
+- oracle-db-install.yml     => installation d'Oracle 19 EE ou SE et ajout des scripts d'exploitation
 
 1. Exécution Pre- install :
 -----------
