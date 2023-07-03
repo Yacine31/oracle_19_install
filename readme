@@ -17,19 +17,27 @@ cloner le repository :
 - oracle-db-install.yml     => installation d'Oracle 19 EE ou SE
 - oracle-db-postinstall.yml => ajout des scripts d'exploitation
 
-Exécution :
+1. Exécution Pre- install :
 -----------
 ansible-playbook -i hosts oracle-db-preinstall.yml 
 
-Les valuers par défaut sont dans : 
- - oracle_version: "19.0.0"
- - oracle_base: "/u01/app/oracle"
- - oracle_home: "{{ oracle_base }}/product/{{oracle_version}}/dbhome_1"
- - oracle_inventory: "/u01/app/oraInventory"
- - oracle_sources: "/u01/sources"
- - oracle_oradata: "/u02/oradata/"
- - oracle_fra: "/u03/fast_recovery_area/"
+
+
+2. Exécution Install :
+-----------
+ansible-playbook -i hosts oracle-db-install.yml 
+
+Les valeurs par défaut : 
+oracle_version: "19.0.0"
+oracle_base: "/u01/app/oracle"
+oracle_home: "{{ oracle_base }}/product/{{oracle_version}}/dbhome_1"
+oracle_inventory: "/u01/app/oraInventory"
+oracle_sources: "/u01/sources"
+oracle_oradata: "/u02/oradata/"
+oracle_fra: "/u03/fast_recovery_area/"
+oracle_install_edition: "EE"               # SE2 ou EE
+
 
 Pour l'exécuter avec des variables différentes : 
 
-ansible-playbook -i hosts oracle-db-preinstall.yml --extra-vars "oracle_version=19c oracle_base=/opt/oracle oracle_home=/opt/oracle/product/19c/dbhome_1"
+ansible-playbook -i hosts oracle-db-install.yml --extra-vars "oracle_install_edition=SE oracle_version=19c oracle_base=/opt/oracle oracle_home=/opt/oracle/product/19c/dbhome_1"
