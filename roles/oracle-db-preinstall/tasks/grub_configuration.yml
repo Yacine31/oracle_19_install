@@ -85,13 +85,13 @@
   # ajout de GRUB_ENABLE_BLSCFG=true 
   #  Workaround of Orabug 20734786
   # ---------------------------------------------------
-  - name: check if GRUB_ENABLE_BLSCFG=true is set 
-    ansible.builtin.shell: grubby --info DEFAULT | grep -i GRUB_ENABLE_BLSCFG=true | wc -l
-    register: grep_count
-    tags: grub
-
-  - name: Configuration grub - GRUB_ENABLE_BLSCFG=true
-    shell: grubby --update-kernel=ALL --args=GRUB_ENABLE_BLSCFG=true 
-    when: grep_count.stdout == '0' and ansible_distribution_major_version >= '7'
-    tags: grub
+  #  - name: check if GRUB_ENABLE_BLSCFG=true is set 
+  #    ansible.builtin.shell: grubby --info DEFAULT | grep -i GRUB_ENABLE_BLSCFG=true | wc -l
+  #    register: grep_count
+  #    tags: grub
+  #
+  #  - name: Configuration grub - GRUB_ENABLE_BLSCFG=true
+  #    shell: grubby --update-kernel=ALL --args=GRUB_ENABLE_BLSCFG=true 
+  #    when: grep_count.stdout == '0' and ansible_distribution_major_version >= '7'
+  #    tags: grub
 
