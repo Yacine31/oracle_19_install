@@ -166,11 +166,12 @@ ${ORACLE_HOME}/bin/rman target / cmdfile=${RMAN_CMD_FILE} log=${BKP_LOG_FILE}
 # Mail si des erreurs dans le fichier de sauvegarde
 #------------------------------------------------------------------------------
 ERR_COUNT=$(egrep "^RMAN-[0-9]*|^ORA-[0-9]:" ${BKP_LOG_FILE} | wc -l)
-SUBJECT="$(hostname)-${ORACLE_SID} : RMAN Backup"
 
 if [ ${ERR_COUNT} -ne 0 ]; then
+        SUBJECT="$(hostname)-${ORACLE_SID} : RMAN Backup ERROR"
         mutt -s $SUBJECT ${MAIL_RCPT} < ${BKP_LOG_FILE}
 else
+        SUBJECT="$(hostname)-${ORACLE_SID} : RMAN Backup"
         mutt -s $SUBJECT ${MAIL_RCPT} < ${BKP_LOG_FILE}
 fi
 
