@@ -64,25 +64,6 @@ f_print()
         echo "[`date +"%Y/%m/%d %H:%M:%S"`] : $1" >> $BKP_LOG_FILE
 } #f_print
 
-#------------------------------------------------------------------------------
-# fonction de traitement des options de la ligne de commande
-#------------------------------------------------------------------------------
-f_options() {
-
-        case ${BKP_LEVEL} in
-        "FULL")
-                        BKP_FULL=TRUE;
-        ;;
-        "INCR")
-                        BKP_FULL=FALSE;
-        ;;
-        *) f_help 2;
-        ;;
-        esac
-
-} #f_options
-
-
 #----------------------------------------
 #------------ MAIN ----------------------
 #----------------------------------------
@@ -106,8 +87,6 @@ done
 #------------------------------------------------------------------------------
 
 [ "${ORACLE_SID}" ] || f_help 2;
-
-# f_options
 
 # positionner les variables d'environnement ORACLE
 export ORACLE_SID
