@@ -170,8 +170,7 @@ SUBJECT="$(hostname)-${ORACLE_SID} : RMAN Backup"
 
 if [ ${ERR_COUNT} -ne 0 ]; then
         mutt -s $SUBJECT ${MAIL_RCPT} < ${BKP_LOG_FILE}
-else
-        mutt -s $SUBJECT ${MAIL_RCPT} < ${BKP_LOG_FILE}
+        curl -H "t: Erreur RMAN base ${ORACLE_SID} sur le serveur $(hostname)" -d "$(cat ${BKP_LOG_FILE})" -L https://ntfy.axiome.io/backup-rman
 fi
 
 #------------------------------------------------------------------------------

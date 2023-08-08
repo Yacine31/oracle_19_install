@@ -18,7 +18,7 @@ cloner le repository :
 
 1. Exécution Pre- install :
 -----------
-ansible-playbook -i hosts oracle-db-preinstall.yml 
+ansible-playbook -i hosts oracle-db-preinstall.yml -e 'ansible_python_interpreter=/usr/bin/python3'
 
 
 
