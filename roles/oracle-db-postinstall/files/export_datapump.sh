@@ -130,10 +130,10 @@ tar cfz export_${ORACLE_SID}_${DATE_JOUR}.tgz export_${ORACLE_SID}_${DATE_JOUR}.
 #------------------------------------------------------------------------------
 # Mail si des erreurs dans le fichier de sauvegarde
 #------------------------------------------------------------------------------
-EXPDP_LOG_FILE=export_${ORACLE_SID}_${DATE_JOUR}.log
-ERR_COUNT=$(egrep "^RMAN-[0-9]*|^ORA-[0-9]:" ${EXPDP_LOG_FILE} | wc -l)
+EXPDP_LOG_FILE=${EXP_LOCATION}/export_${ORACLE_SID}_${DATE_JOUR}.log
+ERR_COUNT=$(egrep "^EXP-[0-9]*|^ORA-[0-9]:" ${EXPDP_LOG_FILE} | wc -l)
 SUBJECT="$(hostname)-${ORACLE_SID} : Export Datapump"
-MSG=$(egrep "^RMAN-[0-9]*|^ORA-[0-9]:" ${EXPDP_LOG_FILE})
+MSG=$(egrep "^EXP-[0-9]*|^ORA-[0-9]:" ${EXPDP_LOG_FILE})
 
 if [ ${ERR_COUNT} -ne 0 ]; then
         mutt -s $SUBJECT ${MAIL_RCPT} < ${EXPDP_LOG_FILE}
