@@ -10,6 +10,7 @@
 # à l'environnement
 #------------------------------------------------------------------------------
 export ORACLE_OWNER=oracle
+export MAIL_RCPT=yacine.oumghar@axiome.ai 
 
 f_init() {
 
@@ -23,9 +24,6 @@ f_init() {
         export EXP_LOCATION=/u04/expdp/$ORACLE_SID
         # nom du répertoire au niveau de la base de données
         export DPDIR=EXPDP_DIR
-
-        # date = jour de la semaine : permet de garder 7 export en ligne
-        export JOUR_SEMAINE=$(date +%A)
 } #f_init
 
 #------------------------------------------------------------------------------
@@ -139,4 +137,3 @@ if [ ${ERR_COUNT} -ne 0 ]; then
         mutt -s $SUBJECT ${MAIL_RCPT} < ${EXPDP_LOG_FILE}
         curl -H "t: Erreur expdp base ${ORACLE_SID} sur le serveur $(hostname)" -d "$MSG" -L https://ntfy.axiome.io/expdp
 fi
-
