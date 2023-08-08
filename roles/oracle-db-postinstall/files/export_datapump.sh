@@ -116,4 +116,27 @@ EOF
 #------------------------------------------------------------------------------
 # export des données
 #------------------------------------------------------------------------------
-$ORACLE_HOME/bin/expdp \'/ as sysdba\' full=y directory=$DPDIR dumpfile=export_${ORACLE_SID}.dmp logfile=export_${ORACLE_SID}.log flashback_time=systimestamp reuse_dumpfiles=yes
+# suppression des anciens fichier tar, dump et log du répertoire
+rm -f ${EXP_LOCATION}/export_${ORACLE_SID}_*.{log,dmp,tgz}
+
+# export datapump
+$ORACLE_HOME/bin/expdp \'/ as sysdba\' full=y directory=$DPDIR dumpfile=export_${ORACLE_SID}_${DATE_JOUR}.dmp logfile=export_${ORACLE_SID}_${DATE_JOUR}.log flashback_time=systimestamp reuse_dumpfiles=yes
+
+# compression du dump et son log dans un seul fichier et suppression des fichiers d'origine
+cd ${EXP_LOCATION}
+tar cfz export_${ORACLE_SID}_${DATE_JOUR}.tgz export_${ORACLE_SID}_${DATE_JOUR}.{dmp,log} && rm -f export_${ORACLE_SID}_${DATE_JOUR}.dmp
+
+
+#------------------------------------------------------------------------------
+# Mail si des erreurs dans le fichier de sauvegarde
+#------------------------------------------------------------------------------
+EXPDP_LOG_FILE=export_${ORACLE_SID}_${DATE_JOUR}.log
+ERR_COUNT=$(egrep "^RMAN-[0-9]*|^ORA-[0-9]:" ${EXPDP_LOG_FILE} | wc -l)
+SUBJECT="$(hostname)-${ORACLE_SID} : Export Datapump"
+MSG=$(egrep "^RMAN-[0-9]*|^ORA-[0-9]:" ${EXPDP_LOG_FILE})
+
+if [ ${ERR_COUNT} -ne 0 ]; then
+        mutt -s $SUBJECT ${MAIL_RCPT} < ${EXPDP_LOG_FILE}
+        curl -H "t: Erreur expdp base ${ORACLE_SID} sur le serveur $(hostname)" -d "$MSG" -L https://ntfy.axiome.io/expdp
+fi
+
