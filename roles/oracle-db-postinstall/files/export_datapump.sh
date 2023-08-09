@@ -115,7 +115,7 @@ EOF
 # export des données
 #------------------------------------------------------------------------------
 # suppression des anciens fichier tar, dump et log du répertoire
-rm -f ${EXP_LOCATION}/export_${ORACLE_SID}_*.{log,dmp,tgz}
+rm -f ${EXP_LOCATION}/export_${ORACLE_SID}.{log,dmp,tgz}
 
 # export datapump
 $ORACLE_HOME/bin/expdp \'/ as sysdba\' full=y directory=$DPDIR dumpfile=export_${ORACLE_SID}.dmp logfile=export_${ORACLE_SID}.log flashback_time=systimestamp reuse_dumpfiles=yes
