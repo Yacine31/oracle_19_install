@@ -12,6 +12,7 @@
       clone: yes
       update: yes
       force: yes
+    ignore_errors: true
  
   # ---------------------------------------------------
   # changement du propriétaire de root en oracle 
