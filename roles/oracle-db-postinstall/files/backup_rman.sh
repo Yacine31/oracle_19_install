@@ -3,12 +3,13 @@
 # ORACLE DATABASE : BACKUP RMAN DB + AL
 #------------------------------------------------------------------------------
 # Historique :
-#       14/09/2011 : YAO - Creation
-#       12/10/2015 : YAO - adaptation à l'ensemble des bases
-#       13/10/2015 : YAO - ajout des params en ligne de commande
-#       03/05/2016 : YAO - adaptation a l'environnement SOM
-#       04/05/2016 : YAO - ajout du niveau de sauvegarde : incrementale 0 ou 1
-#       09/11/2022 : YAO - backup simple => db full
+#       14/09/2011 : YOU - Creation
+#       12/10/2015 : YOU - adaptation à l'ensemble des bases
+#       13/10/2015 : YOU - ajout des params en ligne de commande
+#       03/05/2016 : YOU - adaptation a l'environnement SOM
+#       04/05/2016 : YOU - ajout du niveau de sauvegarde : incrementale 0 ou 1
+#       09/11/2022 : YOU - backup simple => db full
+#       10/08/2023 : YOU - base noarchivelog : execution de rman validate
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -141,21 +142,35 @@ install -d ${BKP_LOG_DIR}
 #------------------------------------------------------------------------------
 # génération du script de la sauvegarde RMAN
 #------------------------------------------------------------------------------
-echo "
-run {
-CONFIGURE DEVICE TYPE DISK PARALLELISM $PARALLELISM ;
-CONFIGURE RETENTION POLICY TO REDUNDANCY ${BKP_REDUNDANCY};
-BACKUP DEVICE TYPE DISK FORMAT '${BKP_LOCATION}/data_%T_%t_%s_%p' TAG 'DATA_${DATE_JOUR}' AS COMPRESSED BACKUPSET DATABASE;
-SQL 'ALTER SYSTEM ARCHIVE LOG CURRENT';
-BACKUP DEVICE TYPE DISK FORMAT '${BKP_LOCATION}/arch_%T_%t_%s_%p' TAG 'ARCH_${DATE_JOUR}' AS COMPRESSED BACKUPSET ARCHIVELOG ALL DELETE ALL INPUT;
-BACKUP CURRENT CONTROLFILE FORMAT '${BKP_LOCATION}/control_%T_%t_%s_%p' TAG 'CTLFILE_${DATE_JOUR}';
-DELETE NOPROMPT OBSOLETE;
-DELETE NOPROMPT EXPIRED BACKUPSET;
-SQL \"ALTER DATABASE BACKUP CONTROLFILE TO TRACE AS ''${BKP_LOCATION}/${ORACLE_SID}_control_file.trc'' REUSE\";
-SQL \"CREATE PFILE=''${BKP_LOCATION}/pfile_${ORACLE_SID}.ora'' FROM SPFILE\";
-}
-" > ${RMAN_CMD_FILE}
 
+# récupération du mode archive ou pas 
+LOG_MODE=$($ORACLE_HOME/bin/sqlplus -S / as sysdba <<EOF
+set heading off
+set feedback off
+set echo off
+select LOG_MODE from V\$DATABASE;
+EOF
+)
+LOG_MODE=$(echo $LOG_MODE | sed 's/^\s*//g')
+
+if [ "$LOG_MODE" == "NOARCHIVELOG" ]; then
+        echo "validate check logical database;" > ${RMAN_CMD_FILE}
+else
+        echo "
+        run {
+        CONFIGURE DEVICE TYPE DISK PARALLELISM $PARALLELISM ;
+        CONFIGURE RETENTION POLICY TO REDUNDANCY ${BKP_REDUNDANCY};
+        BACKUP DEVICE TYPE DISK FORMAT '${BKP_LOCATION}/data_%T_%t_%s_%p' TAG 'DATA_${DATE_JOUR}' AS COMPRESSED BACKUPSET DATABASE;
+        SQL 'ALTER SYSTEM ARCHIVE LOG CURRENT';
+        BACKUP DEVICE TYPE DISK FORMAT '${BKP_LOCATION}/arch_%T_%t_%s_%p' TAG 'ARCH_${DATE_JOUR}' AS COMPRESSED BACKUPSET ARCHIVELOG ALL DELETE ALL INPUT;
+        BACKUP CURRENT CONTROLFILE FORMAT '${BKP_LOCATION}/control_%T_%t_%s_%p' TAG 'CTLFILE_${DATE_JOUR}';
+        DELETE NOPROMPT OBSOLETE;
+        DELETE NOPROMPT EXPIRED BACKUPSET;
+        SQL \"ALTER DATABASE BACKUP CONTROLFILE TO TRACE AS ''${BKP_LOCATION}/${ORACLE_SID}_control_file.trc'' REUSE\";
+        SQL \"CREATE PFILE=''${BKP_LOCATION}/pfile_${ORACLE_SID}.ora'' FROM SPFILE\";
+        }
+        " > ${RMAN_CMD_FILE}
+fi
 #------------------------------------------------------------------------------
 # Execution du script RMAN
 #------------------------------------------------------------------------------
