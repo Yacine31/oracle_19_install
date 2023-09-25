@@ -10,6 +10,7 @@
 #       04/05/2016 : YOU - ajout du niveau de sauvegarde : incrementale 0 ou 1
 #       09/11/2022 : YOU - backup simple => db full
 #       10/08/2023 : YOU - base noarchivelog : execution de rman validate
+#       25/09/2023 : YOU - simplification, 1 seul parametre pour le script 
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -23,7 +24,7 @@ f_init() {
         # les différents répertoires
         export SCRIPTS_DIR=/home/oracle/scripts
         export BKP_LOG_DIR=$SCRIPTS_DIR/logs
-        export BKP_LOCATION=/u04/rman/${ORACLE_SID}
+        export BKP_LOCATION=/u04/backup/${ORACLE_SID}/rman
 
         # nombre de sauvegarde RMAN en ligne à garder
         export BKP_REDUNDANCY=1
@@ -37,9 +38,6 @@ f_init() {
         # nombre de canaux à utiliser
         export PARALLELISM=1
 
-        # mail pour envoyer les erreurs
-        MAIL_RCPT="support@axiome.io,yacine.oumghar@gmail.com"
-
 } # f_init
 
 #------------------------------------------------------------------------------
@@ -48,9 +46,7 @@ f_init() {
 f_help() {
 
         cat <<CATEOF
-syntax : $O -s ORACLE_SID
-
--s ORACLE_SID
+syntax : $O ORACLE_SID
 
 CATEOF
 exit $1
@@ -65,50 +61,12 @@ f_print()
         echo "[`date +"%Y/%m/%d %H:%M:%S"`] : $1" >> $BKP_LOG_FILE
 } #f_print
 
-#------------------------------------------------------------------------------
-# fonction de traitement des options de la ligne de commande
-#------------------------------------------------------------------------------
-f_options() {
-
-        case ${BKP_LEVEL} in
-        "FULL")
-                        BKP_FULL=TRUE;
-        ;;
-        "INCR")
-                        BKP_FULL=FALSE;
-        ;;
-        *) f_help 2;
-        ;;
-        esac
-
-} #f_options
-
-
-#----------------------------------------
-#------------ MAIN ----------------------
-#----------------------------------------
-
-# s, l et t suivis des : => argument attendu
-# h => pas d'argument attendu
-while getopts s:h o
-do
-        case $o in
-        s) ORACLE_SID=$OPTARG;
-        ;;
-        h) f_help 0;
-        ;;
-        *) f_help 2;
-        ;;
-        esac
-done
 
 #------------------------------------------------------------------------------
 # traitement de la ligne de commande
 #------------------------------------------------------------------------------
 
 [ "${ORACLE_SID}" ] || f_help 2;
-
-# f_options
 
 # positionner les variables d'environnement ORACLE
 export ORACLE_SID
@@ -163,9 +121,9 @@ else
         BACKUP DEVICE TYPE DISK FORMAT '${BKP_LOCATION}/data_%T_%t_%s_%p' TAG 'DATA_${DATE_JOUR}' AS COMPRESSED BACKUPSET DATABASE;
         SQL 'ALTER SYSTEM ARCHIVE LOG CURRENT';
         BACKUP DEVICE TYPE DISK FORMAT '${BKP_LOCATION}/arch_%T_%t_%s_%p' TAG 'ARCH_${DATE_JOUR}' AS COMPRESSED BACKUPSET ARCHIVELOG ALL DELETE ALL INPUT;
-        BACKUP CURRENT CONTROLFILE FORMAT '${BKP_LOCATION}/control_%T_%t_%s_%p' TAG 'CTLFILE_${DATE_JOUR}';
         DELETE NOPROMPT OBSOLETE;
         DELETE NOPROMPT EXPIRED BACKUPSET;
+        BACKUP CURRENT CONTROLFILE FORMAT '${BKP_LOCATION}/control_%T_%t_%s_%p' TAG 'CTLFILE_${DATE_JOUR}';
         SQL \"ALTER DATABASE BACKUP CONTROLFILE TO TRACE AS ''${BKP_LOCATION}/${ORACLE_SID}_control_file.trc'' REUSE\";
         SQL \"CREATE PFILE=''${BKP_LOCATION}/pfile_${ORACLE_SID}.ora'' FROM SPFILE\";
         }
@@ -181,17 +139,15 @@ ${ORACLE_HOME}/bin/rman target / cmdfile=${RMAN_CMD_FILE} log=${BKP_LOG_FILE}
 # Mail si des erreurs dans le fichier de sauvegarde
 #------------------------------------------------------------------------------
 ERR_COUNT=$(egrep "^RMAN-[0-9]*|^ORA-[0-9]:" ${BKP_LOG_FILE} | wc -l)
-SUBJECT="$(hostname)-${ORACLE_SID} : RMAN Backup"
 
 if [ ${ERR_COUNT} -ne 0 ]; then
-        mutt -s $SUBJECT ${MAIL_RCPT} < ${BKP_LOG_FILE}
         curl -H "t: Erreur RMAN base ${ORACLE_SID} sur le serveur $(hostname)" -d "$(cat ${BKP_LOG_FILE})" -L https://ntfy.axiome.io/backup-rman
 fi
 
 #------------------------------------------------------------------------------
 # Nettoyage auto des logs : durée de concervation déterminée par la variable : ${BKP_LOG_RETENTION}
 #------------------------------------------------------------------------------
+
 f_print "------------------------- NETTOYAGE DES LOGS -------------------------"
 find ${BKP_LOG_DIR} -type f -iname "backup_rman_${BKP_TYPE}*.log" -mtime +${BKP_LOG_RETENTION} -exec rm -fv "{}" \; >> $BKP_LOG_FILE
-
 f_print "------------------------- BACKUP ${BKP_TYPE} TERMINE -------------------------"
