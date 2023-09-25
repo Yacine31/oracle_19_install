@@ -10,5 +10,5 @@
 
 for i in $(ps -ef | grep pmon | grep -v grep | cut -d_ -f3)
 do 
-	sh /home/oracle/scripts/backup_rman.sh -s $i
+	sh /home/oracle/scripts/backup_rman.sh $i
 done
