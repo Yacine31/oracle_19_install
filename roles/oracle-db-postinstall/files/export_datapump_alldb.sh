@@ -10,5 +10,5 @@
 
 for i in $(ps -ef | grep pmon | grep -v grep | cut -d_ -f3)
 do 
-	sh /home/oracle/scripts/export_datapump.sh -s $i
+	sh /home/oracle/scripts/export_datapump.sh $i
 done
