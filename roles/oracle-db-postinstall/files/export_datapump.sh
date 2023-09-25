@@ -22,7 +22,7 @@ f_init() {
         export NLS_LANG=AMERICAN_AMERICA.${NLS_CHARACTERSET}
 
         # répertoire destination de l'export
-        export EXP_LOCATION=/u04/expdp/$ORACLE_SID
+        export EXP_LOCATION=/u04/backup/$ORACLE_SID/expdp
         # nom du répertoire au niveau de la base de données
         export DPDIR=EXPDP_DIR
 } #f_init
