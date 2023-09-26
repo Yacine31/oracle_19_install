@@ -78,7 +78,7 @@
     tags: backup
 
   - name: Ajout de la tâche cron backup des binaires
-    cron: name="Backup des binaires" user=oracle minute="44" hour="20" day="1" job="sh {{ scripts_dir }}/backup_bin.sh.sh 2>&1 1>/dev/null"
+    cron: name="Backup des binaires" user=oracle minute="44" hour="20" day="1" job="sh {{ scripts_dir }}/backup_bin.sh 2>&1 1>/dev/null"
     tags: backup
 
   # --------------------------------------------------- 
