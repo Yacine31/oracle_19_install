@@ -55,14 +55,18 @@
       - backup_rman_alldb.sh
       - export_datapump.sh
       - export_datapump_alldb.sh
+      - backup_bin.sh
     tags: backup
 
   - name: Création de répertoire de sauvegarde RMAN et Datapump /u04
     file: dest=/u04 mode=775 owner=oracle group=oinstall state=directory recurse=yes
     tags: backup
 
-  - name: installation du package mutt pour envoyer des mails depuis le shell
-    yum:  name=mutt state=latest disable_gpg_check=yes
+  - name: installation du package mutt et curl pour envoyer des mails depuis le shell
+    yum:  name={{ item }} state=latest disable_gpg_check=yes
+    loop:
+      - mutt
+      - curl
     tags: backup
 
   - name: Ajout de la tâche cron RMAN
@@ -71,6 +75,10 @@
 
   - name: Ajout de la tâche cron Datapump
     cron: name="Export Datapump des bases ouvertes" user=oracle minute="44" hour="21" job="sh {{ scripts_dir }}/export_datapump_alldb.sh 2>&1 1>/dev/null"
+    tags: backup
+
+  - name: Ajout de la tâche cron backup des binaires
+    cron: name="Backup des binaires" user=oracle minute="44" hour="20" day="1" job="sh {{ scripts_dir }}/backup_bin.sh.sh 2>&1 1>/dev/null"
     tags: backup
 
   # --------------------------------------------------- 
