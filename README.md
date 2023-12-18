@@ -3,7 +3,9 @@
 ```bash
 yum install -y oracle-epel-release-el8
 yum install -y git ansible
+yum install -y python3-libselinux
 ```
+
 ```bash
 ansible-galaxy collection install ansible.posix 
 ```
