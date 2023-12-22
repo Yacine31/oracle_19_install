@@ -62,15 +62,16 @@
   #  - name: Copie du script backup_rman_alldb.sh dans {{ scripts_dir }}
   #    copy: src=backup_rman_alldb.sh dest={{ scripts_dir }}/ owner=oracle group=oinstall mode=755
 
-  - name: Copie du script RMAN et Datapump dans {{ scripts_dir }}
-    copy: src={{ item }} dest={{ scripts_dir }}/ owner=oracle group=oinstall mode=755
-    loop: 
-      - backup_rman.sh
-      - backup_rman_alldb.sh
-      - export_datapump.sh
-      - export_datapump_alldb.sh
-      - backup_bin.sh
-    tags: backup
+  # # Les scritps locaux ne sont plus copiés, on utilise ceux qui sont sur Github
+  # - name: Copie du script RMAN et Datapump dans {{ scripts_dir }}
+  #   copy: src={{ item }} dest={{ scripts_dir }}/ owner=oracle group=oinstall mode=755
+  #   loop: 
+  #     - backup_rman.sh
+  #     - backup_rman_alldb.sh
+  #     - export_datapump.sh
+  #     - export_datapump_alldb.sh
+  #     - backup_bin.sh
+  #   tags: backup
 
   - name: Création de répertoire de sauvegarde RMAN et Datapump /u04
     file: dest=/u04 mode=775 owner=oracle group=oinstall state=directory recurse=yes
