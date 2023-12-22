@@ -5,15 +5,29 @@
   # ---------------------------------------------------
   # récupération des scripts sql 
   # ---------------------------------------------------
-  - name: Clonage du repository github SQL
+  - name: Vérifier si le répertoire scripts existe
+    stat:
+      path: "{{ scripts_dir }}"
+    register: scripts_directory
+
+  - name: Git Pull car le répertoire existe
+    git:
+      repo: https://github.com/Yacine31/sql.git
+      dest: "{{ scripts_dir }}"
+      update: yes
+      force: yes
+    when: scripts_directory.stat.exists
+
+  - name: Clonage du repository github SQL car le répertoire n'existe pas
     git:
       repo: https://github.com/Yacine31/sql.git
       dest: "{{ scripts_dir }}"
       clone: yes
       update: yes
       force: yes
+    when: not scripts_directory.stat.exists
     ignore_errors: true
- 
+
   # ---------------------------------------------------
   # changement du propriétaire de root en oracle 
   # ---------------------------------------------------
