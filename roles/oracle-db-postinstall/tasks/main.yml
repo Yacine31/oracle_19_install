@@ -96,6 +96,10 @@
     cron: name="Backup des binaires" user=oracle minute="44" hour="20" day="1" job="sh {{ scripts_dir }}/backup_bin.sh 2>&1 1>/dev/null"
     tags: backup
 
+  - name: Ajout de la tâche cron backup des AL si FRA >= 85%
+    cron: name="Backup des AL si FRA >= 85%" user=oracle minute="10" job="sh {{ scripts_dir }}/backup_rman_AL_fct_FRA_Usage.sh"
+    tags: backup
+
   # --------------------------------------------------- 
   # configuration Linux : config oracle pour logrotate
   # Gestion des fichiers logs seulement (archivage et réinitialisation)
