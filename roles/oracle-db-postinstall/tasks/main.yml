@@ -17,6 +17,9 @@
       update: yes
       force: yes
     when: scripts_directory.stat.exists
+    become: true
+    become_method: su
+    become_user: oracle
 
   - name: Clonage du repository github SQL car le répertoire n'existe pas
     git:
@@ -27,6 +30,9 @@
       force: yes
     when: not scripts_directory.stat.exists
     ignore_errors: true
+    become: true
+    become_method: su
+    become_user: oracle
 
   # ---------------------------------------------------
   # changement du propriétaire de root en oracle 
@@ -37,13 +43,6 @@
       owner: oracle
       group: oinstall
       recurse: yes
-
-  # --------------------------------------------------- 
-  # Modification du prompt SQLPlus
-  # --------------------------------------------------- 
-  - name: Modification du prompt SQLPlus
-    copy: src=login.sql dest={{ scripts_dir }} mode=644 owner=oracle group=oinstall
-    tags: login.sql
 
   # --------------------------------------------------- 
   # Ajout de la variabe ORACLE_PATH ans .bash_profile
@@ -80,7 +79,7 @@
     tags: backup
 
   - name: Ajout de la tâche cron backup des AL si FRA >= seuil définit
-    cron: name="Backup des AL si FRA >= seuil définit" user=oracle minute="10" job="sh {{ scripts_dir }}/backup_rman_AL_fct_FRA_Usage.sh 2>&1 1>/dev/null"
+    cron: name="Backup des AL si FRA >= seuil définit" user=oracle minute="*/10" job="sh {{ scripts_dir }}/backup_rman_AL_fct_FRA_Usage.sh 2>&1 1>/dev/null"
     tags: backup
 
   # --------------------------------------------------- 
