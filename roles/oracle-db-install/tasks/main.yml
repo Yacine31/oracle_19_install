@@ -13,6 +13,3 @@
 # Application du patch
   - include: opatch_apply.yml
 
-# Ajout des sripts d'exploitation
-  - include: scripts_exploitation.yml
-

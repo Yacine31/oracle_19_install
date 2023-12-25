@@ -56,23 +56,6 @@
   # ajout de script oracle pour les backups rman
   # ---------------------------------------------------
 
-  #  - name: Copie du script backup_rman.sh dans {{ scripts_dir }}
-  #    copy: src=backup_rman.sh dest={{ scripts_dir }}/ owner=oracle group=oinstall mode=755  #
-
-  #  - name: Copie du script backup_rman_alldb.sh dans {{ scripts_dir }}
-  #    copy: src=backup_rman_alldb.sh dest={{ scripts_dir }}/ owner=oracle group=oinstall mode=755
-
-  # # Les scritps locaux ne sont plus copiés, on utilise ceux qui sont sur Github
-  # - name: Copie du script RMAN et Datapump dans {{ scripts_dir }}
-  #   copy: src={{ item }} dest={{ scripts_dir }}/ owner=oracle group=oinstall mode=755
-  #   loop: 
-  #     - backup_rman.sh
-  #     - backup_rman_alldb.sh
-  #     - export_datapump.sh
-  #     - export_datapump_alldb.sh
-  #     - backup_bin.sh
-  #   tags: backup
-
   - name: Création de répertoire de sauvegarde RMAN et Datapump /u04
     file: dest=/u04 mode=775 owner=oracle group=oinstall state=directory recurse=yes
     tags: backup
@@ -96,8 +79,8 @@
     cron: name="Backup des binaires" user=oracle minute="44" hour="20" day="1" job="sh {{ scripts_dir }}/backup_bin.sh 2>&1 1>/dev/null"
     tags: backup
 
-  - name: Ajout de la tâche cron backup des AL si FRA >= 85%
-    cron: name="Backup des AL si FRA >= 85%" user=oracle minute="10" job="sh {{ scripts_dir }}/backup_rman_AL_fct_FRA_Usage.sh"
+  - name: Ajout de la tâche cron backup des AL si FRA >= seuil définit
+    cron: name="Backup des AL si FRA >= seuil définit" user=oracle minute="10" job="sh {{ scripts_dir }}/backup_rman_AL_fct_FRA_Usage.sh 2>&1 1>/dev/null"
     tags: backup
 
   # --------------------------------------------------- 
