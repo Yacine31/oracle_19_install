@@ -1,9 +1,9 @@
 # INSTALLATION ANSIBLE DIRECT SUR LA MACHINE
 
 ```bash
-yum install -y oracle-epel-release-el8
-yum install -y git ansible
-yum install -y python3-libselinux
+dnf install -y oracle-epel-release-el8
+dnf install -y git ansible
+dnf install -y python3-libselinux
 ```
 
 ```bash
