@@ -91,6 +91,7 @@
    - smartmontools
    - sysstat
    - tar
+   - tmux
    - tree
    - unixODBC
    - unixODBC-devel
