@@ -49,13 +49,13 @@
 
   # copie des librairies stubs.tar pour Linux 9
   - name: Copier le fichier stub.tar
-    copy: src=stub.tar dest={{ oracle_home }}/lib/stubs/stub.tar
+    copy: src=stubs.tar dest={{ oracle_home }}/lib/stubs/stubs.tar owner=oracle
     tags: extract_stubs
     when: ansible_distribution_major_version == "9"
 
   # décompression du fichier tar : 
   - name: Extraction des librairies stubs.tar dans OH/lib/stubs/
-    unarchive: src={{ oracle_home }}/lib/stubs/stub.tar  dest={{ oracle_home }}/lib/stubs/
+    unarchive: src={{ oracle_home }}/lib/stubs/stubs.tar  dest={{ oracle_home }}/lib/stubs/
     become: true
     become_method: su
     become_user: oracle
