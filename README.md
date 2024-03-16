@@ -1,7 +1,8 @@
 # INSTALLATION ANSIBLE DIRECT SUR LA MACHINE
 
 ```bash
-dnf install -y oracle-epel-release-el8
+linux_version=$(cat /etc/os-release | egrep "^PLATFORM_ID=" | cut -d= -f2 | sed 's/"//g' | cut -d: -f2)
+dnf install -y oracle-epel-release-${linux_version}
 dnf install -y git ansible
 dnf install -y python3-libselinux
 ```
