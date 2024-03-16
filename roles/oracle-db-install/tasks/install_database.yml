@@ -36,9 +36,17 @@
     failed_when: checkdbswinstall.stdout != "0"
     tags: checkifexists
 
+  # telechargement des bianaires Oracle si le fichier n'est pas déjà dans /u01/sources
+  - name: Vérifier si le fichier "{{oracle_zip_filename}}" existe
+    stat:
+      path: "{{ oracle_sources }}/{{oracle_zip_filename}}"
+    register: file_check
+    tags: download_sw
+
   - name: Téléchargement des binaires Oracle 
     shell: wget --no-check-certificate https://kutt.axiome.io/m7EQg2p -O {{ oracle_sources }}/{{oracle_zip_filename}}
     tags: download_sw
+    when: not file_check.stat.exists
 
   - name: Extraction des binaires Oracle
     unarchive: src={{ oracle_sources }}/{{ oracle_zip_filename }}  dest={{ oracle_home }}
@@ -63,13 +71,27 @@
     when: ansible_distribution_major_version == "9"
 
   # téléchargeent de OPatch et Patch Release Update 
+  - name: Vérifier si le fichier "/u01/sources/{{opatch_file}}" existe
+    stat:
+      path: "/u01/sources/{{opatch_file}}"
+    register: opatch_file_check
+    tags: download_opatch
+
   - name: Téléchargement OPatch
     shell: wget --no-check-certificate https://kutt.axiome.io/opatch -O /u01/sources/{{opatch_file}}
+    tags: download_opatch
+    when: not opatch_file_check.stat.exists
+
+  - name: Vérifier si le fichier "/u01/sources/{{psu_file}}" existe
+    stat:
+      path: "/u01/sources/{{psu_file}}"
+    register: ru_file_check
     tags: download_opatch
 
   - name: Téléchargement du PSU
     shell: wget --no-check-certificate https://kutt.axiome.io/db_ru -O /u01/sources/{{psu_file}}
     tags: download_ru
+    when: not ru_file_check.stat.exists
 
   # decompression de OPatch dans $ORACLE_HOME
   - name: Installation OPatch dns ORACLE_HOME
