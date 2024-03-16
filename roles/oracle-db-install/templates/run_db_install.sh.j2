@@ -6,7 +6,13 @@ if [[ $chkifinstalled == 1 ]]; then
  echo "Error: ORACLE_HOME: {{ oracle_home }} already present. Exiting"
  exit 0
 else
-export CV_ASSUME_DISTID=OEL7.6
+linux_version=$(cat /etc/os-release | egrep "^VERSION=" | cut -d= -f2 | sed 's/"//g' | cut -d. -f1)
+if [ "${linux_verion}" -eq 9 ]
+then
+    export CV_ASSUME_DISTID=OL8
+else
+    export CV_ASSUME_DISTID=OEL7.6
+fi
 {{ oracle_home }}/runInstaller -responseFile {{ oracle_sources }}/{{ db_response_file }} -ignorePrereqFailure -silent -waitforcompletion
 fi
 
