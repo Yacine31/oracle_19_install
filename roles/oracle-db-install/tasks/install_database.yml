@@ -45,7 +45,24 @@
     become: true
     become_method: su
     become_user: oracle
-    tags: extract
+    tags: extract_sw
+
+  # copie des librairies stubs.tar pour Linux 9
+  - name: Copier le fichier stub.tar
+    copy:
+      src: stub.tar
+      dest: {{ oracle_home }}/lib/stubs/stub.tar
+    tags: extract_stubs
+    when: ansible_distribution_major_version == "9"
+
+  # décompression du fichier tar : 
+  - name: Extraction des librairies stubs.tar dans OH/lib/stubs/
+    unarchive: src={{ oracle_home }}/lib/stubs/stub.tar  dest={{ oracle_home }}/lib/stubs/
+    become: true
+    become_method: su
+    become_user: oracle
+    tags: extract_stubs
+    when: ansible_distribution_major_version == "9"
 
   # téléchargeent de OPatch et Patch Release Update 
   - name: Téléchargement OPatch
