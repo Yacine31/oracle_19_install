@@ -28,7 +28,7 @@ tmp_size_gb: 1
 patch_dir: "{{ oracle_sources }}"
 opatch_file: p6880880_190000_Linux-x86-64.zip
 psu_file: path_ru.zip
-patch_number: 34765931
+patch_number: 35943157
 
 # emplacement des sripts du compte oracle
 scripts_dir: "/home/oracle/scripts"
