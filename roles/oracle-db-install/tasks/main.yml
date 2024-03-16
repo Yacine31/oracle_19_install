@@ -8,8 +8,8 @@
   - include: install_database.yml
 
 # telechargement des fihiers : opatch + PSU-RU
-  - include: download_software.yml
+#  - include: download_software.yml
 
 # Application du patch
-  - include: opatch_apply.yml
+#  - include: opatch_apply.yml
 

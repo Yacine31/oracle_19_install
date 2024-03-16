@@ -47,6 +47,31 @@
     become_user: oracle
     tags: extract
 
+  # téléchargeent de OPatch et Patch Release Update 
+  - name: Téléchargement OPatch
+    shell: wget --no-check-certificate https://kutt.axiome.io/opatch -O /u01/sources/{{opatch_file}}
+    tags: download_opatch
+
+  - name: Téléchargement du PSU
+    shell: wget --no-check-certificate https://kutt.axiome.io/db_ru -O /u01/sources/{{psu_file}}
+    tags: download_ru
+
+  # decompression de OPatch dans $ORACLE_HOME
+  - name: Installation OPatch dns ORACLE_HOME
+    unarchive: src={{ patch_dir }}/{{ opatch_file }} dest={{ oracle_home }}
+    become: true
+    become_method: su
+    become_user: oracle
+    tags: patch_db
+
+  # extract du patch dans /u01/sources
+  - name: unzip du patch
+    unarchive: src={{ patch_dir }}/{{ psu_file }} dest={{ patch_dir }}
+    become: true
+    become_method: su
+    become_user: oracle
+    tags: patch_db
+
   - name: Copie du fichier de réponse pour installation silencieuse
     template: src=db_install_{{ oracle_version }}.j2 dest={{ oracle_sources }}/{{ db_response_file }}
     tags: responsefile
@@ -105,3 +130,16 @@
 
   - name: suppression du binaires
     file: path={{ oracle_sources }}/{{oracle_zip_filename}} state=absent
+
+  # suppression des binaires, du fichier de réponse et du script d'install
+  - name: Nettoyage du répertoire du patch
+    file: path={{ oracle_sources }}/{{ patch_number }} state=absent
+    tags: patch_db
+
+  - name: suppression du fichier OPatch
+    file: path={{ oracle_sources }}/{{ opatch_file }} state=absent
+    tags: patch_db
+
+  - name: suppression du Patch RU
+    file: path={{ oracle_sources }}/{{ psu_file }} state=absent
+    tags: patch_db
