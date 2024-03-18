@@ -36,9 +36,9 @@
   - include: users_configuration.yml
  
   # ---------------------------------------------------
-  # configuration Linux : personnalisation rlwrap
+  # configuration Linux : ajout de packages supplémentaires
   # ---------------------------------------------------
-  - include: rlwrap.yml
+  - include: rpm_tools.yml
 
   # ---------------------------------------------------
   # configuration Linux : Création des répertoires Oracle
