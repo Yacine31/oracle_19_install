@@ -11,14 +11,16 @@
 
   # installation rlwrap depuis le repo epel
   - name: YUM - installation de packages supplémentaires
-    yum:  name={{ item }} state=latest disable_gpg_check=yes
-    with_items:
-      - rlwrap
-      - htop
-      - nmap
-      - strace
-      - tcpdump
-      - lsof
+    yum: 
+      name:
+        - rlwrap
+        - htop
+        - nmap
+        - strace
+        - tcpdump
+        - lsof
+      state: latest 
+      disable_gpg_check: yes
     # when: ansible_distribution_major_version == '9'
 
   # suppression du repo epel car il n'est plus necessaire
