@@ -2,21 +2,18 @@
   # ---------------------------------------------------
   # installation de l'utilitaire rlwrap pour oracle
   # ---------------------------------------------------
+
+  # ajout du repository epel si non présent
+  - name: YUM - installation du paquet oracle-epel-release
+    yum:  name="oracle-epel-release-el{{ ansible_distribution_major_version }}" state=latest disable_gpg_check=yes
+    tags: install_epel
+
+  # installation rlwrap depuis le repo epel
   - name: YUM - installation de rlwrap
     yum:  name=rlwrap state=latest disable_gpg_check=yes
     tags: rlwrap
 
-#  - name: Copy du rpm rlwrap OL8 vers le serveur
-#    copy: src=rlwrap-0.45.2-1.el8.x86_64.rpm dest=/tmp/rlwrap.x86_64.rpm owner=root mode=644
-#    tags: rlwrap
-#
-#  - name: Install rlwrap rpm from a local file
-#    yum:
-#      name: /tmp/rlwrap.x86_64.rpm
-#      state: present
-#      disable_gpg_check: yes
-#    tags: rlwrap
-#
-#  - name: suppression du rpm rlwrap du serveur
-#    file: path=/tmp/rlwrap.x86_64.rpm state=absent
-#    tags: rlwrap
+  # suppression du repo epel car il n'est plus necessaire
+  - name: YUM - désinstallation du paquet oracle-epel-release
+    yum:  name="oracle-epel-release-el{{ ansible_distribution_major_version }}" state=absent disable_gpg_check=yes
+    tags: install_epel
