@@ -28,9 +28,12 @@ fi
 # cloner le repository :
 echo "Récupération du scripts depuis github."
 git clone https://github.com/Yacine31/oracle_19_install
-cd oracle_19_install
 ```
 
+changement de répertoire
+```bash
+cd oracle_19_install
+```
 
 3 books à jour : 
 - oracle-db-preinstall.yml  => configuration de Linux pour une installation Oracle
