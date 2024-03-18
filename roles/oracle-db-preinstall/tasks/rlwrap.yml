@@ -10,7 +10,7 @@
     when: ansible_distribution_major_version == '9'
 
   # installation rlwrap depuis le repo epel
-  - name: YUM - installation de rlwrap
+  - name: YUM - installation de packages supplémentaires
     yum:  name={{ item }} state=latest disable_gpg_check=yes
     with_items:
       - rlwrap
