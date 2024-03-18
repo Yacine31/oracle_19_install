@@ -7,7 +7,7 @@
   - name: YUM - installation du paquet oracle-epel-release
     yum:  name="oracle-epel-release-el{{ ansible_distribution_major_version }}" state=latest disable_gpg_check=yes
     tags: install_epel
-    when: ansible_distribution_major_version == '9'
+    # when: ansible_distribution_major_version == '9'
 
   # installation rlwrap depuis le repo epel
   - name: YUM - installation de packages supplémentaires
@@ -19,10 +19,10 @@
       - strace
       - tcpdump
       - lsof
-    when: ansible_distribution_major_version == '9'
+    # when: ansible_distribution_major_version == '9'
 
   # suppression du repo epel car il n'est plus necessaire
   - name: YUM - désinstallation du paquet oracle-epel-release
     yum:  name="oracle-epel-release-el{{ ansible_distribution_major_version }}" state=absent disable_gpg_check=yes
     tags: install_epel
-    when: ansible_distribution_major_version == '9'
+    # when: ansible_distribution_major_version == '9'
