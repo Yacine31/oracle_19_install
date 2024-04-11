@@ -21,6 +21,7 @@
         - lsof
       state: latest 
       disable_gpg_check: yes
+    tags: install_epel
     # when: ansible_distribution_major_version == '9'
 
   # suppression du repo epel car il n'est plus necessaire
