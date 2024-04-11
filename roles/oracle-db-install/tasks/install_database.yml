@@ -158,6 +158,36 @@
   - debug: var=opatchls.stdout_lines
     tags: opatch
 
+  # application du patch RU
+  - name: patch conflict detection
+    action: shell export ORACLE_HOME={{ oracle_home }}; cd {{ patch_dir }}/{{ patch_number }}; $ORACLE_HOME/OPatch/opatch prereq CheckConflictAgainstOHWithDetail -ph ./
+    register: conflict_detection
+    failed_when: "'Prereq \"checkConflictAgainstOHWithDetail\" passed.' not in conflict_detection.stdout"
+    become: true
+    become_method: su
+    become_user: oracle
+    tags: patch_db
+
+  - name: Application du patch 
+    action: shell export ORACLE_HOME={{ oracle_home}}; cd {{ patch_dir }}/{{ patch_number }}; $ORACLE_HOME/OPatch/opatch apply -silent
+    register: apply_psu
+    failed_when: "'OPatch succeeded.' not in apply_psu.stdout"
+    become: true
+    become_method: su
+    become_user: oracle
+    tags: patch_db
+    
+  - name: Résultat de l'installation via OPatch
+    shell: "{{ oracle_home }}/OPatch/opatch lspatches"
+    become: true
+    become_method: su
+    become_user: oracle
+    register: opatchls
+    tags: patch_db
+
+  - debug: var=opatchls.stdout_lines
+    tags: patch_db
+
   # suppression des binaires, du fichier de réponse et du script d'install
   - name: suppression du fichier de réponse
     file: path={{ oracle_sources }}/{{ db_response_file }} state=absent
