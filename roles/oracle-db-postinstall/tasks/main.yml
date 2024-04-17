@@ -105,7 +105,7 @@
 
   # suppression de l'ancien fichier qui se trouve dans /etc/cron.daily si il existe
   - name: suppression du fichier /etc/cron.daily/oracle_cleaner si il existe
-    ansible.builtin.file: path=/etc/cron.daily/oracle_cleaner status=absent
+    ansible.builtin.file: path=/etc/cron.daily/oracle_cleaner state=absent
     tags: oracle_cleaner
   # --------------------------------------------------- 
   # copy du fichier dbora.service dans /lib/systemd/system pour redémmarage auto
