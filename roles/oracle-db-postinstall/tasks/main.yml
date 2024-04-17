@@ -95,12 +95,12 @@
   # Gestion des fichiers trace et xml : purge des anciens fichiers
   # ---------------------------------------------------
   - name: Netoyage ADR Oracle - copie du fichier de configuration pour cron
-    template: src=cron_oracle_cleaner.j2 dest=/home/oracle/oracle_cleaner.sh mode=755 owner=oracle group=oinstall
+    template: src=cron_oracle_cleaner.j2 dest={{ scripts_dir }}/oracle_cleaner.sh mode=755 owner=oracle group=oinstall
     tags: oracle_cleaner
 
   # ajout du script dans le crontab de l'utilisateur oracle
   - name: Ajout de la tâche cron purge des fichiers trace et audit
-    cron: name="Purge des fichiers trace et audit" user=oracle minute="23" hour="23" day="1" job="sh /home/oracle/oracle_cleaner.sh 2>&1 1>/dev/null"
+    cron: name="Purge des fichiers trace et audit" user=oracle minute="23" hour="23" day="1" job="sh {{ scripts_dir }}/oracle_cleaner.sh 2>&1 1>/dev/null"
     tags: oracle_cleaner
 
   # suppression de l'ancien fichier qui se trouve dans /etc/cron.daily si il existe
