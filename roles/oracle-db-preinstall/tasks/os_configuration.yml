@@ -95,6 +95,10 @@
           create=yes
     tags: bash_cron_r
 
+  - name: Journalctl - Limiter la taille disque utilisée à 500M max
+    lineinfile: dest=/etc/systemd/journald.conf line="SystemMaxUse=500M"
+    tags: Journalctl
+
   # --------------------------------------------------- 
   # configuration Linux : Mode panic
   # ---------------------------------------------------
