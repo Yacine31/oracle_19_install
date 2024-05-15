@@ -5,7 +5,6 @@ After=network.target
 
 [Service]
 Type=simple
-Environment=PIDFILE=/run/dbora.pid
 ExecStart=/usr/bin/su - oracle -c "{{oracle_home}}/bin/dbstart {{oracle_home}}"
 ExecStop=/usr/bin/su - oracle -c "{{oracle_home}}/bin/dbshut {{oracle_home}}"
 TimeoutSec=900
