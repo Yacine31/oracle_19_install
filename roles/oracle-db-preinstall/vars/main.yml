@@ -41,3 +41,63 @@
       - setroubleshoot
       - smartd
       - yum-updatesd
+
+  #---------------------------------------------------------------------
+  # pramètres de configuation sécurisée :
+  #---------------------------------------------------------------------
+  linux_secure_config:
+      - { name: fs.suid_dumpable, value: "0"}
+      - { name: kernel.dmesg_restrict, value: "1"}
+      - { name: kernel.panic_on_oops, value: "1"}
+      - { name: kernel.perf_cpu_time_max_percent, value: "1"}
+      - { name: kernel.perf_event_max_sample_rate, value: "1"}
+      - { name: kernel.perf_event_paranoid, value: "2"}
+      - { name: kernel.pid_max, value: "65536"}
+      - { name: kernel.randomize_va_space, value: "2"}
+      - { name: kernel.sysrq, value: "0"}
+      - { name: kernel.yama.ptrace_scope, value: "1"}
+      - { name: net.core.bpf_jit_harden, value: "2"}
+      - { name: net.ipv4.conf.all.accept_local, value: "0"}
+      - { name: net.ipv4.conf.all.accept_redirects, value: "0"}
+      - { name: net.ipv4.conf.all.accept_source_route, value: "0"}
+      - { name: net.ipv4.conf.all.arp_filter, value: "0"}
+      - { name: net.ipv4.conf.all.arp_ignore, value: "2"}
+      - { name: net.ipv4.conf.all.drop_gratuitous_arp, value: "1"}
+      - { name: net.ipv4.conf.all.log_martians, value: 1 }
+      - { name: net.ipv4.conf.all.route_localnet, value: "0"}
+      - { name: net.ipv4.conf.all.rp_filter, value: "1"}
+      - { name: net.ipv4.conf.all.secure_redirects, value: "0"}
+      - { name: net.ipv4.conf.all.send_redirects, value: "0"}
+      - { name: net.ipv4.conf.all.shared_media, value: "0"}
+      - { name: net.ipv4.conf.default.accept_redirects, value: "0"}
+      - { name: net.ipv4.conf.default.accept_source_route, value: 0 }
+      - { name: net.ipv4.conf.default.log_martians, value: 1 }
+      - { name: net.ipv4.conf.default.rp_filter, value: "1"}
+      - { name: net.ipv4.conf.default.secure_redirects, value: "0"}
+      - { name: net.ipv4.conf.default.send_redirects, value: "0"}
+      - { name: net.ipv4.conf.default.shared_media, value: "0"}
+      - { name: net.ipv4.icmp_echo_ignore_broadcasts, value: 1 }
+      - { name: net.ipv4.icmp_ignore_bogus_error_responses, value: "1"}
+      - { name: net.ipv4.ip_forward, value: "0"}
+      - { name: net.ipv4.ip_local_port_range, value: "32768 65535"}
+      - { name: net.ipv4.tcp_rfc1337, value: "1"}
+      - { name: net.ipv4.tcp_syncookies, value: "1"}
+      - { name: net.ipv6.conf.all.accept_ra_defrtr, value: "0"}
+      - { name: net.ipv6.conf.all.accept_ra_pinfo, value: "0"}
+      - { name: net.ipv6.conf.all.accept_ra_rtr_pref, value: "0"}
+      - { name: net.ipv6.conf.all.accept_ra, value: 0 }
+      - { name: net.ipv6.conf.all.accept_redirects, value: "0"}
+      - { name: net.ipv6.conf.all.accept_source_route, value: "0"}
+      - { name: net.ipv6.conf.all.autoconf, value: "0"}
+      - { name: net.ipv6.conf.all.max_addresses, value: "1"}
+      - { name: net.ipv6.conf.all.router_solicitations, value: "0"}
+      - { name: net.ipv6.conf.default.accept_ra_defrtr, value: "0"}
+      - { name: net.ipv6.conf.default.accept_ra_pinfo, value: "0"}
+      - { name: net.ipv6.conf.default.accept_ra_rtr_pref, value: "0"}
+      - { name: net.ipv6.conf.default.accept_ra, value: 0 }
+      - { name: net.ipv6.conf.default.accept_redirects, value: "0"}
+      - { name: net.ipv6.conf.default.accept_source_route, value: "0"}
+      - { name: net.ipv6.conf.default.autoconf, value: "0"}
+      - { name: net.ipv6.conf.default.max_addresses, value: "1"}
+      - { name: net.ipv6.conf.default.router_solicitations, value: "0"}
+      - { name: vm.mmap_min_addr, value: "65536"}
