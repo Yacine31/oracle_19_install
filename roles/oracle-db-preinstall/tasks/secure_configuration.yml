@@ -10,7 +10,15 @@
     copy: src="00-vidage.conf" dest="/etc/security/limits.d/00-vidage.conf"
   
   - name: Application des paramètres de configuration sécurisée
-    sysctl: name={{ item.name }} value={{ item.value }} state=present reload=yes ignoreerrors=yes
+    sysctl: 
+      name={{ item.name }} 
+      value={{ item.value }} 
+      state=present 
+      reload=yes 
+      ignoreerrors=yes 
+      ignoreerrors=yes 
+      sysctl_set=yes 
+      sysctl_file=/etc/sysctl.d/97-secure-configuration.conf 
     when: secure_configuration
     with_items: "{{ linux_secure_config }}"
     tags: secure_config
