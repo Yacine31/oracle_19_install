@@ -58,7 +58,8 @@
   - name: Linux - Ajustement des paramètres du Kernel dans /etc/sysctl.d/99-oracle-database-preinstall-19c-sysctl.conf
     sysctl:
       name={{ item.name }} value={{ item.value }}
-      state=present reload=yes ignoreerrors=yes sysctl_set=yes sysctl_file=/etc/sysctl.d/99-oracle-database-preinstall-19c-sysctl.conf 
+      state=present reload=yes ignoreerrors=yes sysctl_set=yes 
+      sysctl_file=/etc/sysctl.d/99-oracle-database-preinstall-19c-sysctl.conf 
     with_items: "{{ oracle_sysconfig }}"
     tags: sysctl.conf 
 
@@ -107,7 +108,9 @@
     tags: mode_panic
 
   - name: Configuration du mode panic sur bug du kernel
-    sysctl: name=kernel.panic_on_oops value=1 state=present reload=yes ignoreerrors=yes
+    sysctl: 
+      name=kernel.panic_on_oops value=1 state=present reload=yes ignoreerrors=yes
+      sysctl_file=/etc/sysctl.d/99-oracle-database-preinstall-19c-sysctl.conf
     tags: mode_panic
 
   # --------------------------------------------------- 
