@@ -44,7 +44,7 @@
     tags: download_sw
 
   - name: Téléchargement des binaires Oracle 
-    shell: wget --no-check-certificate https://kutt.axiome.io/m7EQg2p -O {{ oracle_sources }}/{{oracle_zip_filename}}
+    shell: wget --no-check-certificate https://kutt.axiome.io/db19300 -O {{ oracle_sources }}/{{oracle_zip_filename}}
     tags: download_sw
     when: not file_check.stat.exists
 
