@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 export ORACLE_BASE={{ oracle_base }}
 
@@ -6,19 +6,30 @@ export ADMIN_DIR=${ORACLE_BASE}/admin
 export RDBMS_LOG_DIR=${ORACLE_BASE}/diag/rdbms
 export LSNR_LOG_DIR=${ORACLE_BASE}/diag/tnslsnr
 
+# nombre de jours à conserver pour les fichiers aud, trc et xml
 export DAYS=5
 
-/usr/bin/logger -t ora_db_clean_xml "Clean xml file older than $DAYS days from ${RDBMS_LOG_DIR}"
-find ${RDBMS_LOG_DIR} -iname "*.xml" -mtime +$DAYS -print -delete | logger -t oracle_clean_xml
+# Fichier log pour la date du jour
+LOG_DIR="/home/oracle/scripts/logs"
+mkdir -p $LOG_DIR
+LOG_FILE="$LOG_DIR/clean_$(date +%Y%m%d).log"
 
-/usr/bin/logger -t ora_lsnr_clean_xml "Clean xml file older than $DAYS days from ${LSNR_LOG_DIR}"
-find ${LSNR_LOG_DIR} -iname "*.xml" -mtime +$DAYS -print -delete | logger -t oracle_clean_xml
 
-/usr/bin/logger -t ora_db_clean_trc "Clean trc file older than $DAYS days from ${RDBMS_LOG_DIR}"
-find ${RDBMS_LOG_DIR} -iname "*.trc" -mtime +$DAYS -print -delete | logger -t oracle_clean_trc
+# purge des fichiers oracle trc, xml et aud
+echo "$(date +"%Y/%m/%d %H:%M:%S") : Clean xml file older than $DAYS days from ${RDBMS_LOG_DIR}" | tee -a $LOG_FILE
+find ${RDBMS_LOG_DIR} -iname "*.xml" -mtime +$DAYS -print -delete | tee -a $LOG_FILE
 
-/usr/bin/logger -t ora_db_clean_trm "Clean trm file older than $DAYS days from ${RDBMS_LOG_DIR}"
-find ${RDBMS_LOG_DIR} -iname "*.trm" -mtime +$DAYS -print -delete | logger -t oracle_clean_trm
+echo "$(date +"%Y/%m/%d %H:%M:%S") : Clean xml file older than $DAYS days from ${LSNR_LOG_DIR}" | tee -a $LOG_FILE
+find ${LSNR_LOG_DIR} -iname "*.xml" -mtime +$DAYS -print -delete | tee -a $LOG_FILE
 
-/usr/bin/logger -t ora_db_clean_aud "Clean audit file older than +$DAYS days from ${ADMIN_DIR}"
-find ${ADMIN_DIR} -iname "*.aud" -mtime +$DAYS -print -delete | logger -t oracle_clean_aud
+echo "$(date +"%Y/%m/%d %H:%M:%S") : Clean trc file older than $DAYS days from ${RDBMS_LOG_DIR}" | tee -a $LOG_FILE
+find ${RDBMS_LOG_DIR} -iname "*.trc" -mtime +$DAYS -print -delete | tee -a $LOG_FILE
+
+echo "$(date +"%Y/%m/%d %H:%M:%S") : Clean trm file older than $DAYS days from ${RDBMS_LOG_DIR}" | tee -a $LOG_FILE
+find ${RDBMS_LOG_DIR} -iname "*.trm" -mtime +$DAYS -print -delete | tee -a $LOG_FILE
+
+echo "$(date +"%Y/%m/%d %H:%M:%S") : Clean audit file older than +$DAYS days from ${ADMIN_DIR}" | tee -a $LOG_FILE
+find ${ADMIN_DIR} -iname "*.aud" -mtime +$DAYS -print -delete | tee -a $LOG_FILE
+
+# Purger les fichiers de log plus anciens que 15 jours
+find $LOG_DIR -name "clean_*.log" -mtime +15 -exec rm {} \;
