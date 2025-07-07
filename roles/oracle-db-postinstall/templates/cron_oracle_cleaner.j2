@@ -7,7 +7,7 @@ export RDBMS_LOG_DIR=${ORACLE_BASE}/diag/rdbms
 export LSNR_LOG_DIR=${ORACLE_BASE}/diag/tnslsnr
 
 # nombre de jours à conserver pour les fichiers aud, trc et xml
-export DAYS=5
+export DAYS=3
 
 # Fichier log pour la date du jour
 LOG_DIR="/home/oracle/scripts/logs"
@@ -30,6 +30,8 @@ find ${RDBMS_LOG_DIR} -iname "*.trm" -mtime +$DAYS -print -delete | tee -a $LOG_
 
 echo "$(date +"%Y/%m/%d %H:%M:%S") : Clean audit file older than +$DAYS days from ${ADMIN_DIR}" | tee -a $LOG_FILE
 find ${ADMIN_DIR} -iname "*.aud" -mtime +$DAYS -print -delete | tee -a $LOG_FILE
+
+echo "$(date +"%Y/%m/%d %H:%M:%S") : Cleaning completed." | tee -a $LOG_FILE
 
 # Purger les fichiers de log plus anciens que 15 jours
 find $LOG_DIR -name "clean_*.log" -mtime +15 -exec rm {} \;
