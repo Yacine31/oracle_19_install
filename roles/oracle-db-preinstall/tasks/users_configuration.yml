@@ -52,8 +52,8 @@
       update_password: on_create
       password: "{{ item.passwd }}"
     loop:
-       - { username: oracle, uid: 1001, primgroup: oinstall, othergroups: "dba,asmdba,backupdba,dgdba,kmdba,racdba,oper", passwd: "{{ oracle_user_password }}" }
-       - { username: grid, uid: 1002, primgroup: oinstall, othergroups: "dba,asmdba,backupdba,dgdba,kmdba,racdba,asmoper,asmadmin", passwd: "{{ grid_user_password }}" }
+       - { username: oracle, uid: 1001, primgroup: oinstall, othergroups: "dba,asmdba,backupdba,dgdba,kmdba,racdba,oper", passwd: "{{ oracle_user_password | password_hash('sha512') }}" }
+       - { username: grid, uid: 1002, primgroup: oinstall, othergroups: "dba,asmdba,backupdba,dgdba,kmdba,racdba,asmoper,asmadmin", passwd: "{{ grid_user_password | password_hash('sha512') }}" }
     when: full_configuration |bool and item.username not in (user_facts.ansible_facts.getent_passwd | default({}))
     tags: user
 
