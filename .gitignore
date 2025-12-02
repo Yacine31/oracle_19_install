@@ -23,6 +23,7 @@ __pycache__/
 *.tmp
 *.swp
 *.bak
+.vscode
 
 # Sensitive files (uncomment if needed)
 # inventory/
