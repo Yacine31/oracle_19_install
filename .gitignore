@@ -31,3 +31,4 @@ __pycache__/
 
 # Oracle specific
 # oracle_sources/ (if local downloads)
+AGENTS.md
