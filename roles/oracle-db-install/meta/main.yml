@@ -1,0 +1,22 @@
+galaxy_info:
+  role_name: oracle_db_install
+  author: your_name
+  description: Installation des binaires Oracle Database et application des patches
+  company: your_company
+
+  license: MIT
+
+  min_ansible_version: "2.10"
+
+  platforms:
+    - name: EL
+      versions:
+        - "7"
+        - "8"
+        - "9"
+
+  galaxy_tags:
+    - oracle
+    - database
+    - install
+    - patch

@@ -1,0 +1,29 @@
+---
+# Variables par défaut surchargeables pour oracle-db-install
+
+oracle_version: "19.0.0"
+oracle_base: "/u01/app/oracle"
+dbhome: "dbhome_1"
+oracle_home: "{{ oracle_base }}/product/{{oracle_version}}/{{ dbhome }}"
+oracle_inventory: "/u01/app/oraInventory"
+oracle_sources: "/u01/sources"
+oracle_oradata: "/u02/oradata/"
+oracle_fra: "/u03/fast_recovery_area/"
+oracle_install_edition: "EE"
+oracle_zip_filename: "Oracle_Database_19.3.0.0.0_for_Linux_x86-64.zip"
+
+u01_free_space_gb: 8
+tmp_free_space_gb: 1
+etc_free_spage_gb: 1
+var_free_spage_gb: 1
+
+db_response_file: "install_db_{{ oracle_version }}.rsp"
+
+u01_size_gb: 1
+tmp_size_gb: 1
+patch_dir: "{{ oracle_sources }}"
+opatch_file: p6880880_190000_Linux-x86-64.zip
+psu_file: patch_ru.zip
+patch_number: 36233263
+
+scripts_dir: "/home/oracle/scripts"
