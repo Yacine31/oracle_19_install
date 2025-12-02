@@ -1,0 +1,59 @@
+---
+#
+# Configuration des sauvegardes automatiques Oracle
+#
+
+- name: Création du répertoire de sauvegarde /u04
+  ansible.builtin.file:
+    dest: /u04
+    mode: '0775'
+    owner: oracle
+    group: oinstall
+    state: directory
+    recurse: yes
+  tags: backup
+
+- name: Installation des packages mutt et curl pour les emails
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: latest
+  loop:
+    - mutt
+    - curl
+  tags: backup
+
+- name: Ajout de la tâche cron RMAN
+  ansible.builtin.cron:
+    name: "Backup RMAN des bases ouvertes et en AL"
+    user: oracle
+    minute: "44"
+    hour: "23"
+    job: "sh {{ scripts_dir }}/backup_rman_alldb.sh 2>&1 1>/dev/null"
+  tags: backup
+
+- name: Ajout de la tâche cron Datapump
+  ansible.builtin.cron:
+    name: "Export Datapump des bases ouvertes"
+    user: oracle
+    minute: "44"
+    hour: "21"
+    job: "sh {{ scripts_dir }}/export_datapump_alldb.sh 2>&1 1>/dev/null"
+  tags: backup
+
+- name: Ajout de la tâche cron backup des binaires
+  ansible.builtin.cron:
+    name: "Backup des binaires"
+    user: oracle
+    minute: "44"
+    hour: "20"
+    day: "1"
+    job: "sh {{ scripts_dir }}/backup_bin.sh 2>&1 1>/dev/null"
+  tags: backup
+
+- name: Ajout de la tâche cron backup des AL si FRA >= seuil
+  ansible.builtin.cron:
+    name: "Backup des AL si FRA >= seuil définit"
+    user: oracle
+    minute: "*/10"
+    job: "sh {{ scripts_dir }}/backup_rman_AL_fct_FRA_Usage.sh 2>&1 1>/dev/null"
+  tags: backup

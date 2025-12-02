@@ -1,0 +1,32 @@
+---
+#
+# Gestion des scripts SQL pour Oracle
+#
+
+- name: Gérer le repository des scripts SQL
+  ansible.builtin.git:
+    repo: https://github.com/Yacine31/sql.git
+    dest: "{{ scripts_dir }}"
+    update: yes
+    force: yes
+  become: true
+  become_method: su
+  become_user: oracle
+  register: git_result
+  failed_when: git_result.failed and 'already exists' not in git_result.msg
+  tags: scripts
+
+- name: Changement du propriétaire des scripts
+  ansible.builtin.file:
+    dest: "{{ scripts_dir }}"
+    owner: oracle
+    group: oinstall
+    recurse: yes
+  tags: scripts
+
+- name: Ajout de la variable ORACLE_PATH dans .bash_profile
+  ansible.builtin.lineinfile:
+    path: /home/oracle/.bash_profile
+    line: "export ORACLE_PATH={{ scripts_dir }}"
+    create: yes
+  tags: oraclepath

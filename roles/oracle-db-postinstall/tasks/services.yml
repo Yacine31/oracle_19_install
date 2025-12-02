@@ -1,0 +1,58 @@
+---
+#
+# Configuration des services système et tâches cron
+#
+
+- name: Copie du script de démarrage automatique des bases Oracle
+  ansible.builtin.template:
+    src: dbora.service.j2
+    dest: /lib/systemd/system/dbora.service
+    owner: root
+    mode: '0644'
+  tags: dbora_init
+
+- name: Activation du service de démarrage automatique
+  ansible.builtin.systemd:
+    name: dbora
+    daemon_reload: yes
+    enabled: yes
+  tags: dbora_init
+
+- name: Copie du script de nettoyage ADR Oracle
+  ansible.builtin.template:
+    src: cron_oracle_cleaner.j2
+    dest: "{{ scripts_dir }}/oracle_cleaner.sh"
+    owner: oracle
+    group: oinstall
+    mode: '0755'
+  tags: oracle_cleaner
+
+- name: Ajout de la tâche cron de nettoyage des logs
+  ansible.builtin.cron:
+    name: "Purge des fichiers trace et audit"
+    user: oracle
+    minute: "23"
+    hour: "23"
+    day: "1"
+    job: "sh {{ scripts_dir }}/oracle_cleaner.sh 2>&1 1>/dev/null"
+  tags: oracle_cleaner
+
+- name: Suppression de l'ancien fichier cron si existant
+  ansible.builtin.file:
+    path: /etc/cron.daily/oracle_cleaner
+    state: absent
+  tags: oracle_cleaner
+
+- name: Copie de la configuration logrotate pour Oracle
+  ansible.builtin.template:
+    src: logrotate_oracle.j2
+    dest: /etc/logrotate.d/oracle
+    owner: root
+    group: root
+    mode: '0644'
+  tags: logrotate
+
+- name: Message de rappel pour la configuration oratab
+  ansible.builtin.debug:
+    msg: "Pensez à mettre Y au lieu de N dans /etc/oratab pour les bases à démarrage automatique"
+  tags: dbora_init
