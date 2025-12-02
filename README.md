@@ -61,9 +61,10 @@ cd oracle_19_install
 
 1. Exécution Pre- install :
 ```bash
+# ⚠️ IMPORTANT : Configurez d'abord les mots de passe dans group_vars/all.yml
 ansible-playbook -i hosts oracle-db-preinstall.yml
 ```
-Parfois ansible ne fonctionne pas sans spécifier le chemin vers python3 : 
+Parfois ansible ne fonctionne pas sans spécifier le chemin vers python3 :
 ```bash
 ansible-playbook -i hosts oracle-db-preinstall.yml -e 'ansible_python_interpreter=/usr/bin/python3'
 ```
@@ -93,12 +94,31 @@ full_configuration: true
 secure_configuration: false
 scripts_dir: "/home/oracle/scripts"
 
+# Mots de passe utilisateurs système (en clair - seront hashés automatiquement)
+oracle_user_password: "Oracle123"
+grid_user_password: "Grid123"
+
 # Variables spécifiques au rôle d'installation (roles/oracle-db-install/defaults/main.yml)
 oracle_install_edition: "EE"               # SE2 (Standard Edition 2) ou EE
 oracle_zip_filename: "Oracle_Database_19.3.0.0.0_for_Linux_x86-64.zip"
 ```
 
 ## Personnalisation des variables
+
+### ⚠️ Important : Configuration des mots de passe utilisateurs
+
+**Avant de lancer `oracle-db-preinstall.yml`, vous devez configurer les mots de passe des utilisateurs système :**
+
+```bash
+# Éditer le fichier des variables
+vim group_vars/all.yml
+
+# Modifier les mots de passe (valeurs par défaut) :
+oracle_user_password: "VotreMotDePasseOracle"
+grid_user_password: "VotreMotDePasseGrid"
+```
+
+**Note :** Les mots de passe sont stockés en clair dans le fichier mais seront automatiquement hashés (SHA-512) lors de la création des utilisateurs.
 
 ### Modification des variables communes
 
