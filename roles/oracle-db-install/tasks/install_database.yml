@@ -4,12 +4,12 @@
 #
 
   - name: Création du répertoire oracle
-    shell: |
+    ansible.builtin.shell: |
       mkdir -p {{ item }}
       chown -R oracle:oinstall /$(echo {{ item }} | cut -d"/" -f2)
       chmod -R 775 /$(echo {{ item }} | cut -d"/" -f2)
-    # file: dest={{ item }} mode=775 owner=oracle group=oinstall state=directory recurse=yes
-    with_items:
+    # ansible.builtin.file: dest={{ item }} mode=775 owner=oracle group=oinstall state=directory recurse=yes
+    loop:
       - "{{ oracle_base }}"
       - "{{ oracle_inventory }}"
       - "{{ oracle_home }}"
@@ -19,37 +19,37 @@
     tags: createdir
     
   - name: vérification de l espace disque disponible sur oracle_base
-    action: shell df -P {{ oracle_base }} | awk 'END { print $4 }'
+    ansible.builtin.shell: df -P {{ oracle_base }} | awk 'END { print $4 }'
     register: u01size
     failed_when: u01size.stdout|int < u01_free_space_gb*1024*1024
     tags: diskfreespace
 
   - name: vérification de l espace disque disponible sur /tmp
-    action: shell df -P /tmp | awk 'END { print $4 }'
+    ansible.builtin.shell: df -P /tmp | awk 'END { print $4 }'
     register: tmpsize
     failed_when: tmpsize.stdout|int < tmp_free_space_gb*1024*1024
     tags: diskfreespace
 
   - name: Vérifier si une installation existe ...
-    shell: grep "{{ oracle_home }}" "{{ oracle_inventory }}/ContentsXML/inventory.xml" | wc -l
+    ansible.builtin.shell: grep "{{ oracle_home }}" "{{ oracle_inventory }}/ContentsXML/inventory.xml" | wc -l
     register: checkdbswinstall
     failed_when: checkdbswinstall.stdout != "0"
     tags: checkifexists
 
   # telechargement des bianaires Oracle si le fichier n'est pas déjà dans /u01/sources
   - name: Vérifier si le fichier "{{oracle_zip_filename}}" existe
-    stat:
+    ansible.builtin.stat:
       path: "{{ oracle_sources }}/{{oracle_zip_filename}}"
     register: file_check
     tags: download_sw
 
   - name: Téléchargement des binaires Oracle 
-    shell: wget --no-check-certificate https://kutt.axiome.io/db19300 -O {{ oracle_sources }}/{{oracle_zip_filename}}
+    ansible.builtin.shell: wget --no-check-certificate https://kutt.axiome.io/db19300 -O {{ oracle_sources }}/{{oracle_zip_filename}}
     tags: download_sw
     when: not file_check.stat.exists
 
   - name: Extraction des binaires Oracle
-    unarchive: src={{ oracle_sources }}/{{ oracle_zip_filename }}  dest={{ oracle_home }}
+    ansible.builtin.unarchive: src={{ oracle_sources }}/{{ oracle_zip_filename }}  dest={{ oracle_home }}
     become: true
     become_method: su
     become_user: oracle
@@ -57,13 +57,13 @@
 
   # copie des librairies stubs.tar pour Linux 9
   - name: Copier le fichier stub.tar
-    copy: src=stubs.tar dest={{ oracle_home }}/lib/stubs/stubs.tar owner=oracle
+    ansible.builtin.copy: src=stubs.tar dest={{ oracle_home }}/lib/stubs/stubs.tar owner=oracle
     tags: extract_stubs
     when: ansible_distribution_major_version == "9"
 
   # décompression du fichier tar : 
   - name: Extraction des librairies stubs.tar dans OH/lib/stubs/
-    unarchive: src={{ oracle_home }}/lib/stubs/stubs.tar  dest={{ oracle_home }}/lib/stubs/
+    ansible.builtin.unarchive: src={{ oracle_home }}/lib/stubs/stubs.tar  dest={{ oracle_home }}/lib/stubs/
     become: true
     become_method: su
     become_user: oracle
@@ -72,30 +72,30 @@
 
   # téléchargeent de OPatch et Patch Release Update 
   - name: Vérifier si le fichier "/u01/sources/{{opatch_file}}" existe
-    stat:
+    ansible.builtin.stat:
       path: "/u01/sources/{{opatch_file}}"
     register: opatch_file_check
     tags: download_opatch
 
   - name: Téléchargement OPatch
-    shell: wget --no-check-certificate https://kutt.axiome.io/opatch -O /u01/sources/{{opatch_file}}
+    ansible.builtin.shell: wget --no-check-certificate https://kutt.axiome.io/opatch -O /u01/sources/{{opatch_file}}
     tags: download_opatch
     when: not opatch_file_check.stat.exists
 
   - name: Vérifier si le fichier "/u01/sources/{{psu_file}}" existe
-    stat:
+    ansible.builtin.stat:
       path: "/u01/sources/{{psu_file}}"
     register: ru_file_check
     tags: download_opatch
 
   - name: Téléchargement du PSU
-    shell: wget --no-check-certificate https://kutt.axiome.io/db_ru -O /u01/sources/{{psu_file}}
+    ansible.builtin.shell: wget --no-check-certificate https://kutt.axiome.io/db_ru -O /u01/sources/{{psu_file}}
     tags: download_ru
     when: not ru_file_check.stat.exists
 
   # decompression de OPatch dans $ORACLE_HOME
   - name: Installation OPatch dns ORACLE_HOME
-    unarchive: src={{ patch_dir }}/{{ opatch_file }} dest={{ oracle_home }}
+    ansible.builtin.unarchive: src={{ patch_dir }}/{{ opatch_file }} dest={{ oracle_home }}
     become: true
     become_method: su
     become_user: oracle
@@ -103,27 +103,27 @@
 
   # extract du patch dans /u01/sources
   - name: unzip du patch
-    unarchive: src={{ patch_dir }}/{{ psu_file }} dest={{ patch_dir }}
+    ansible.builtin.unarchive: src={{ patch_dir }}/{{ psu_file }} dest={{ patch_dir }}
     become: true
     become_method: su
     become_user: oracle
     tags: patch_db
 
   - name: Copie du fichier de réponse pour installation silencieuse
-    template: src=db_install_{{ oracle_version }}.j2 dest={{ oracle_sources }}/{{ db_response_file }}
+    ansible.builtin.template: src=db_install_{{ oracle_version }}.j2 dest={{ oracle_sources }}/{{ db_response_file }}
     tags: responsefile
 
   - name: Création du script d installation silencieuse
-    template: src=run_db_install.sh.j2 dest={{ oracle_sources }}/run_db_install.sh mode=755
+    ansible.builtin.template: src=run_db_install.sh.j2 dest={{ oracle_sources }}/run_db_install.sh mode=755
     tags: responsefile
 
 ## La commande export est dans le fichier sh de l'étape précédente qui lance l'installation silencieuse.
 #  - name: modification du numero de distib sur Linux 8
-#    lineinfile: dest={{ oracle_home }}/cv/admin/cvu_config state=present line="CV_ASSUME_DISTID=OEL7.6"
+#    ansible.builtin.lineinfile: dest={{ oracle_home }}/cv/admin/cvu_config state=present line="CV_ASSUME_DISTID=OEL7.6"
 #    tags: distid_ol7
 
   - name: Installation des binaires Oracle
-    shell: "{{ oracle_sources }}/run_db_install.sh"
+    ansible.builtin.shell: "{{ oracle_sources }}/run_db_install.sh"
     register: oradbinstall
     become: true
     become_method: su
@@ -131,36 +131,36 @@
     ignore_errors: true
     tags: orainstall
 
-  - debug: var=oradbinstall.stdout_lines
+  - ansible.builtin.debug: var=oradbinstall.stdout_lines
     tags: orainstall
 
   - name: Vérification de l existance du fichier orainstRoot.sh
-    stat: path="{{ oracle_inventory }}/orainstRoot.sh"
+    ansible.builtin.stat: path="{{ oracle_inventory }}/orainstRoot.sh"
     register: orainstRoot
 
   - name: Exécution du script orainstRoot.sh
-    shell: "{{ oracle_inventory }}/orainstRoot.sh"
+    ansible.builtin.shell: "{{ oracle_inventory }}/orainstRoot.sh"
     when: orainstRoot.stat.exists
     tags: runroot
 
   - name: Exécution du script root.sh
-    shell: "{{ oracle_home }}/root.sh"
+    ansible.builtin.shell: "{{ oracle_home }}/root.sh"
     tags: runroot
 
   - name: Résultat de l installation via OPatch
-    shell: "{{ oracle_home }}/OPatch/opatch lspatches"
+    ansible.builtin.shell: "{{ oracle_home }}/OPatch/opatch lspatches"
     become: true
     become_method: su
     become_user: oracle
     register: opatchls
     tags: opatch
 
-  - debug: var=opatchls.stdout_lines
+  - ansible.builtin.debug: var=opatchls.stdout_lines
     tags: opatch
 
   # application du patch RU
   - name: patch conflict detection
-    action: shell export ORACLE_HOME={{ oracle_home }}; cd {{ patch_dir }}/{{ patch_number }}; $ORACLE_HOME/OPatch/opatch prereq CheckConflictAgainstOHWithDetail -ph ./
+    ansible.builtin.shell: export ORACLE_HOME={{ oracle_home }}; cd {{ patch_dir }}/{{ patch_number }}; $ORACLE_HOME/OPatch/opatch prereq CheckConflictAgainstOHWithDetail -ph ./
     register: conflict_detection
     failed_when: "'Prereq \"checkConflictAgainstOHWithDetail\" passed.' not in conflict_detection.stdout"
     become: true
@@ -169,7 +169,7 @@
     tags: patch_db
 
   - name: Application du patch 
-    action: shell export ORACLE_HOME={{ oracle_home}}; cd {{ patch_dir }}/{{ patch_number }}; $ORACLE_HOME/OPatch/opatch apply -silent
+    ansible.builtin.shell: export ORACLE_HOME={{ oracle_home}}; cd {{ patch_dir }}/{{ patch_number }}; $ORACLE_HOME/OPatch/opatch apply -silent
     register: apply_psu
     failed_when: "'OPatch succeeded.' not in apply_psu.stdout"
     become: true
@@ -178,35 +178,35 @@
     tags: patch_db
     
   - name: Résultat de l'installation via OPatch
-    shell: "{{ oracle_home }}/OPatch/opatch lspatches"
+    ansible.builtin.shell: "{{ oracle_home }}/OPatch/opatch lspatches"
     become: true
     become_method: su
     become_user: oracle
     register: opatchls
     tags: patch_db
 
-  - debug: var=opatchls.stdout_lines
+  - ansible.builtin.debug: var=opatchls.stdout_lines
     tags: patch_db
 
   # suppression des binaires, du fichier de réponse et du script d'install
   - name: suppression du fichier de réponse
-    file: path={{ oracle_sources }}/{{ db_response_file }} state=absent
+    ansible.builtin.file: path={{ oracle_sources }}/{{ db_response_file }} state=absent
 
   - name: suppression du script d'installation
-    file: path={{ oracle_sources }}/run_db_install.sh state=absent
+    ansible.builtin.file: path={{ oracle_sources }}/run_db_install.sh state=absent
 
   - name: suppression du binaires
-    file: path={{ oracle_sources }}/{{oracle_zip_filename}} state=absent
+    ansible.builtin.file: path={{ oracle_sources }}/{{oracle_zip_filename}} state=absent
 
   # suppression des binaires, du fichier de réponse et du script d'install
   - name: Nettoyage du répertoire du patch
-    file: path={{ oracle_sources }}/{{ patch_number }} state=absent
+    ansible.builtin.file: path={{ oracle_sources }}/{{ patch_number }} state=absent
     tags: patch_db
 
   - name: suppression du fichier OPatch
-    file: path={{ oracle_sources }}/{{ opatch_file }} state=absent
+    ansible.builtin.file: path={{ oracle_sources }}/{{ opatch_file }} state=absent
     tags: patch_db
 
   - name: suppression du Patch RU
-    file: path={{ oracle_sources }}/{{ psu_file }} state=absent
+    ansible.builtin.file: path={{ oracle_sources }}/{{ psu_file }} state=absent
     tags: patch_db

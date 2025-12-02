@@ -6,12 +6,12 @@
   # récupération des scripts sql 
   # ---------------------------------------------------
   - name: Vérifier si le répertoire scripts existe
-    stat:
+    ansible.builtin.stat:
       path: "{{ scripts_dir }}"
     register: scripts_directory
 
   - name: Git Pull car le répertoire existe
-    git:
+    ansible.builtin.git:
       repo: https://github.com/Yacine31/sql.git
       dest: "{{ scripts_dir }}"
       update: yes
@@ -22,7 +22,7 @@
     become_user: oracle
 
   - name: Clonage du repository github SQL car le répertoire n'existe pas
-    git:
+    ansible.builtin.git:
       repo: https://github.com/Yacine31/sql.git
       dest: "{{ scripts_dir }}"
       clone: yes
@@ -38,7 +38,7 @@
   # changement du propriétaire de root en oracle 
   # ---------------------------------------------------
   - name: Changement du propriétaire
-    file: 
+    ansible.builtin.file: 
       dest: "{{ scripts_dir }}" 
       owner: oracle
       group: oinstall
@@ -48,7 +48,7 @@
   # Ajout de la variabe ORACLE_PATH ans .bash_profile
   # --------------------------------------------------- 
   - name: Ajout de la variabe ORACLE_PATH ans .bash_profile
-    lineinfile: path=/home/oracle/.bash_profile line="export ORACLE_PATH={{ scripts_dir }}" create=yes
+    ansible.builtin.lineinfile: path=/home/oracle/.bash_profile line="export ORACLE_PATH={{ scripts_dir }}" create=yes
     tags: oraclepath
 
   # --------------------------------------------------- 
@@ -56,30 +56,30 @@
   # ---------------------------------------------------
 
   - name: Création de répertoire de sauvegarde RMAN et Datapump /u04
-    file: dest=/u04 mode=775 owner=oracle group=oinstall state=directory recurse=yes
+    ansible.builtin.file: dest=/u04 mode=775 owner=oracle group=oinstall state=directory recurse=yes
     tags: backup
 
   - name: installation du package mutt et curl pour envoyer des mails depuis le shell
-    yum:  name={{ item }} state=latest disable_gpg_check=yes
+    ansible.builtin.yum:  name={{ item }} state=latest disable_gpg_check=yes
     loop:
       - mutt
       - curl
     tags: backup
 
   - name: Ajout de la tâche cron RMAN
-    cron: name="Backup RMAN des bases ouvertes et en AL" user=oracle minute="44" hour="23" job="sh {{ scripts_dir }}/backup_rman_alldb.sh 2>&1 1>/dev/null"
+    ansible.builtin.cron: name="Backup RMAN des bases ouvertes et en AL" user=oracle minute="44" hour="23" job="sh {{ scripts_dir }}/backup_rman_alldb.sh 2>&1 1>/dev/null"
     tags: backup
 
   - name: Ajout de la tâche cron Datapump
-    cron: name="Export Datapump des bases ouvertes" user=oracle minute="44" hour="21" job="sh {{ scripts_dir }}/export_datapump_alldb.sh 2>&1 1>/dev/null"
+    ansible.builtin.cron: name="Export Datapump des bases ouvertes" user=oracle minute="44" hour="21" job="sh {{ scripts_dir }}/export_datapump_alldb.sh 2>&1 1>/dev/null"
     tags: backup
 
   - name: Ajout de la tâche cron backup des binaires
-    cron: name="Backup des binaires" user=oracle minute="44" hour="20" day="1" job="sh {{ scripts_dir }}/backup_bin.sh 2>&1 1>/dev/null"
+    ansible.builtin.cron: name="Backup des binaires" user=oracle minute="44" hour="20" day="1" job="sh {{ scripts_dir }}/backup_bin.sh 2>&1 1>/dev/null"
     tags: backup
 
   - name: Ajout de la tâche cron backup des AL si FRA >= seuil définit
-    cron: name="Backup des AL si FRA >= seuil définit" user=oracle minute="*/10" job="sh {{ scripts_dir }}/backup_rman_AL_fct_FRA_Usage.sh 2>&1 1>/dev/null"
+    ansible.builtin.cron: name="Backup des AL si FRA >= seuil définit" user=oracle minute="*/10" job="sh {{ scripts_dir }}/backup_rman_AL_fct_FRA_Usage.sh 2>&1 1>/dev/null"
     tags: backup
 
   # --------------------------------------------------- 
@@ -87,7 +87,7 @@
   # Gestion des fichiers logs seulement (archivage et réinitialisation)
   # ---------------------------------------------------
   - name: Gestion des logs Oracle - copie du fichier de configuration pour logrotate
-    template: src=logrotate_oracle.j2 dest=/etc/logrotate.d/oracle mode=644 owner=root group=root
+    ansible.builtin.template: src=logrotate_oracle.j2 dest=/etc/logrotate.d/oracle mode=644 owner=root group=root
     tags: logrotate
 
   # --------------------------------------------------- 
@@ -95,12 +95,12 @@
   # Gestion des fichiers trace et xml : purge des anciens fichiers
   # ---------------------------------------------------
   - name: Netoyage ADR Oracle - copie du fichier de configuration pour cron
-    template: src=cron_oracle_cleaner.j2 dest={{ scripts_dir }}/oracle_cleaner.sh mode=755 owner=oracle group=oinstall
+    ansible.builtin.template: src=cron_oracle_cleaner.j2 dest={{ scripts_dir }}/oracle_cleaner.sh mode=755 owner=oracle group=oinstall
     tags: oracle_cleaner
 
   # ajout du script dans le crontab de l'utilisateur oracle
   - name: Ajout de la tâche cron purge des fichiers trace et audit
-    cron: name="Purge des fichiers trace et audit" user=oracle minute="23" hour="23" day="1" job="sh {{ scripts_dir }}/oracle_cleaner.sh 2>&1 1>/dev/null"
+    ansible.builtin.cron: name="Purge des fichiers trace et audit" user=oracle minute="23" hour="23" day="1" job="sh {{ scripts_dir }}/oracle_cleaner.sh 2>&1 1>/dev/null"
     tags: oracle_cleaner
 
   # suppression de l'ancien fichier qui se trouve dans /etc/cron.daily si il existe
@@ -111,11 +111,11 @@
   # copy du fichier dbora.service dans /lib/systemd/system pour redémmarage auto
   # ---------------------------------------------------
   - name: Copie du script de démarrage auto des bases Oracle
-    template: src=dbora.service.j2 dest=/lib/systemd/system/dbora.service owner=root mode=644
+    ansible.builtin.template: src=dbora.service.j2 dest=/lib/systemd/system/dbora.service owner=root mode=644
     tags: dbora_init
 
   - name: Activation par systemctl du script de démarrage auto des bases Oracle
-    systemd: name=dbora daemon_reload=yes enabled=yes
+    ansible.builtin.systemd: name=dbora daemon_reload=yes enabled=yes
     tags: dbora_init
 
   - debug: msg="Pensez à mettre Y au lieu de N dans /etc/oratab pour les bases à démarreage automatique"

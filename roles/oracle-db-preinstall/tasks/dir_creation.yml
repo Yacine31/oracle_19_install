@@ -15,12 +15,12 @@
 # ./runInstaller
 
   - name: Création du répertoire oracle
-    shell: |
+    ansible.builtin.shell: |
       mkdir -p {{ item }}
       chown -R oracle:oinstall /$(echo {{ item }} | cut -d"/" -f2)
       chmod -R 775 /$(echo {{ item }} | cut -d"/" -f2)
     # file: path={{ item }} mode=775 owner=oracle group=oinstall state=directory recurse=yes
-    with_items:
+    loop:
       - "{{ oracle_base }}"
       - "{{ oracle_inventory }}"
       - "{{ oracle_home }}"

@@ -1,6 +1,12 @@
 # INSTALLATION ANSIBLE DIRECT SUR LA MACHINE
 
-Pour Oralce Linux 9 l'installation ansible est légèrement différente de Linux 7 ou 8 :
+## Prérequis
+
+- Systèmes d'exploitation supportés : Oracle Linux 7, 8 ou 9
+- Droits root requis pour l'exécution des playbooks
+- Collections Ansible : `ansible.posix` (installée automatiquement par le script)
+
+Pour Oracle Linux 9 l'installation Ansible est légèrement différente de Linux 7 ou 8 :
 
 Exécuter ce code en tant que root pour installer les préreuis et récupérer les books ansible : 
 
@@ -35,7 +41,7 @@ changement de répertoire
 cd oracle_19_install
 ```
 
-3 books à jour : 
+3 playbooks à jour : 
 - oracle-db-preinstall.yml  => configuration de Linux pour une installation Oracle
 - oracle-db-install.yml     => installation d'Oracle 19 EE ou SE et ajout des scripts d'exploitation
 - oracle-db-postinstall.yml  => configuration postinstall : ajout de différents scripts d'exploitation
@@ -63,7 +69,7 @@ oracle_inventory: "/u01/app/oraInventory"
 oracle_sources: "/u01/sources"
 oracle_oradata: "/u02/oradata/"
 oracle_fra: "/u03/fast_recovery_area/"
-oracle_install_edition: "EE"               # SE2 ou EE
+oracle_install_edition: "EE"               # SE (Standard Edition 2) ou EE
 ```
 
 Pour l'exécuter avec des variables différentes : 

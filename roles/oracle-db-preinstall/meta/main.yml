@@ -1,0 +1,22 @@
+galaxy_info:
+  role_name: oracle_db_preinstall
+  author: your_name
+  description: Préparation du serveur Linux pour l'installation d'Oracle Database
+  company: your_company
+
+  license: MIT
+
+  min_ansible_version: "2.10"
+
+  platforms:
+    - name: EL
+      versions:
+        - "7"
+        - "8"
+        - "9"
+
+  galaxy_tags:
+    - oracle
+    - database
+    - linux
+    - preinstall

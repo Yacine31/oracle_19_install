@@ -1,8 +1,8 @@
 ---
- - name: Host configuration
-   hosts: all
-   user: root
-   become: yes
+- name: Host configuration
+  hosts: all
+  become_user: root
+  become_method: sudo
 
-   roles:
-     - oracle-db-preinstall
+  roles:
+    - oracle-db-preinstall

@@ -2,42 +2,45 @@
   # ---------------------------------------------------
   # configuration des packages necessaires pour Linux
   # ---------------------------------------------------
-  - name: YUM - installation des packages nécessaires
-    yum:  name={{ linux_packages }} state=latest disable_gpg_check=yes
-    tags: rpm_packages
+  - name: Installation des packages nécessaires
+    ansible.builtin.package:
+      name: "{{ linux_packages }}"
+      state: latest
+    tags: [packages, rpm_packages]
 
   # ---------------------------------------------------
   # configuration du serveur Chronyd - Linux >= 7
   # ---------------------------------------------------
   - name: start chronyd
-    service: name=chronyd  state=started  enabled=yes
+    ansible.builtin.service: name=chronyd  state=started  enabled=yes
     ignore_errors: true
+    tags: services
 
   # ---------------------------------------------------
   # Activation du nscd : Name Service Cache Daemon pour palier aux
   # problèmes de perte de DNS
   # ---------------------------------------------------
   - name: activate nscd
-    service: name=nscd state=started  enabled=yes
+    ansible.builtin.service: name=nscd state=started  enabled=yes
     ignore_errors: true
 
   # ---------------------------------------------------
   # Activation de rsyslog : non configuré parfois sur Oracle Linux
   # ---------------------------------------------------
   - name: activate rsyslog
-    service: name=rsyslog state=started  enabled=yes
+    ansible.builtin.service: name=rsyslog state=started  enabled=yes
     ignore_errors: true
 
   # --------------------------------------------------- 
   # configuration Linux : Selinux
   # ---------------------------------------------------
   - name: Desactiver Selinux (de façon permanente)
-    selinux: state=disabled
+    ansible.builtin.selinux: state=disabled
     register: selinux
     tags: selinux
   
   - name: Disactiver Selinux (runtime)
-    shell: setenforce 0
+    ansible.builtin.shell: setenforce 0
     ignore_errors: true
     tags: selinux
 
@@ -45,8 +48,8 @@
   # configuration Linux : les services
   # ---------------------------------------------------
   - name: arrêter et désactiver les services inutils
-    with_items: "{{ linux_services }}"
-    service: name={{ item }}  state=stopped  enabled=no
+    loop: "{{ linux_services }}"
+    ansible.builtin.service: name={{ item }}  state=stopped  enabled=no
     tags: linuxservices
     ignore_errors: true
 
@@ -56,21 +59,21 @@
 #  - name: Linux - Ajustement des paramètres du Kernel dans /etc/sysctl.d/oracle_sysctl.conf
 #      state=present reload=yes ignoreerrors=yes sysctl_set=yes sysctl_file=/etc/sysctl.d/99-oracle-sysctl.conf 
   - name: Linux - Ajustement des paramètres du Kernel dans /etc/sysctl.d/99-oracle-database-preinstall-19c-sysctl.conf
-    sysctl:
+    ansible.builtin.sysctl:
       name={{ item.name }} value={{ item.value }}
       state=present reload=yes ignoreerrors=yes sysctl_set=yes 
       sysctl_file=/etc/sysctl.d/99-oracle-database-preinstall-19c-sysctl.conf 
-    with_items: "{{ oracle_sysconfig }}"
+    loop: "{{ oracle_sysconfig }}"
     tags: sysctl.conf 
 
   - name: Configuration PAM
-    lineinfile: dest=/etc/pam.d/login state=present line="session required pam_limits.so"
+    ansible.builtin.lineinfile: dest=/etc/pam.d/login state=present line="session required pam_limits.so"
     tags: pamconfig
 
-#    lineinfile: dest=/etc/security/limits.d/oracle_seclimits.conf create=yes state=present line={{ item }}
+#    ansible.builtin.lineinfile: dest=/etc/security/limits.d/oracle_seclimits.conf create=yes state=present line={{ item }}
   - name: Linux - Ajustement des limits pour Oracle dans /etc/security/limits.d/oracle-database-preinstall-19c.conf
-    lineinfile: dest=/etc/security/limits.d/oracle-database-preinstall-19c.conf create=yes state=present line={{ item }}
-    with_items: "{{ oracle_seclimits }}"
+    ansible.builtin.lineinfile: dest=/etc/security/limits.d/oracle-database-preinstall-19c.conf create=yes state=present line={{ item }}
+    loop: "{{ oracle_seclimits }}"
     tags: seclimit
 
 
@@ -86,29 +89,29 @@
     tags: bash_alias
 
   - name: BASH - ajout de ignore-case pour autocompletion avec TAB
-    lineinfile: dest=/etc/inputrc line="set completion-ignore-case On" create=yes state=present
+    ansible.builtin.lineinfile: dest=/etc/inputrc line="set completion-ignore-case On" create=yes state=present
     tags: bash_tab
 
   - name: Desactivation de la commande crontab -r 
-    lineinfile: dest=/etc/profile.d/z_crontab_r.sh
+    ansible.builtin.lineinfile: dest=/etc/profile.d/z_crontab_r.sh
           line='crontab () { [[ $@ =~ -[iel]*r ]] && echo "option -r (remove) not allowed" || command crontab "$@" ;}'
           state=present
           create=yes
     tags: bash_cron_r
 
   - name: Journalctl - Limiter la taille disque utilisée à 500M max
-    lineinfile: dest=/etc/systemd/journald.conf line="SystemMaxUse=500M"
+    ansible.builtin.lineinfile: dest=/etc/systemd/journald.conf line="SystemMaxUse=500M"
     tags: Journalctl
 
   # --------------------------------------------------- 
   # configuration Linux : Mode panic
   # ---------------------------------------------------
   - name: Configuratio du mode panic sur perte du /
-    shell: free_form="tune2fs -e panic `df -P / |tail -1 | awk '{print $1}'`"
+    ansible.builtin.shell: free_form="tune2fs -e panic `df -P / |tail -1 | awk '{print $1}'`"
     tags: mode_panic
 
   - name: Configuration du mode panic sur bug du kernel
-    sysctl: 
+    ansible.builtin.sysctl: 
       name=kernel.panic_on_oops value=1 state=present reload=yes ignoreerrors=yes
       sysctl_file=/etc/sysctl.d/99-oracle-database-preinstall-19c-sysctl.conf
     tags: mode_panic
@@ -117,7 +120,7 @@
   # configuration du démarrage en mode 3 par défaut
   # ---------------------------------------------------
   - name: Configuration du mode 3 comme mode de démarrage par défaut
-    shell: systemctl set-default multi-user.target
+    ansible.builtin.shell: systemctl set-default multi-user.target
     tags: init3
 
   # --------------------------------------------------- 

@@ -5,11 +5,11 @@
 
 
 # installation des binaires Oracle DB
-  - include: install_database.yml
+  - include_tasks: install_database.yml
 
 # telechargement des fihiers : opatch + PSU-RU
-#  - include: download_software.yml
+#  - include_tasks: download_software.yml
 
 # Application du patch
-#  - include: opatch_apply.yml
+#  - include_tasks: opatch_apply.yml
 
