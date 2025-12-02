@@ -15,3 +15,7 @@ full_configuration: true
 secure_configuration: false
 
 scripts_dir: "/home/oracle/scripts"
+
+# Mots de passe utilisateurs système (hashés pour /etc/shadow)
+oracle_user_password: "$6$0xHoAXXF$K75HKb64Hcb/CEcr3YEj2LGERi/U2moJgsCK.ztGxLsKoaXc4UBiNZPL0hlxB5ng6GL.gyipfQOOXplzcdgvD0"
+grid_user_password: "$6$0xHoAXXF$K75HKb64Hcb/CEcr3YEj2LGERi/U2moJgsCK.ztGxLsKoaXc4UBiNZPL0hlxB5ng6GL.gyipfQOOXplzcdgvD0"
