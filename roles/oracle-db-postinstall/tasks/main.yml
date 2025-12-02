@@ -1,9 +1,17 @@
 ---
-# 
-# post configuration d'une installation de base de données Oracle 
 #
+# post configuration d'une installation de base de données Oracle
+#
+
+  - name: Vérifier les prérequis pour la post-installation
+    ansible.builtin.assert:
+      that:
+        - ansible_memtotal_mb >= 2048
+      msg: "Prérequis non satisfaits : RAM >= 2GB"
+    tags: prerequisites
+
   # ---------------------------------------------------
-  # récupération des scripts sql 
+  # récupération des scripts sql
   # ---------------------------------------------------
   - name: Vérifier si le répertoire scripts existe
     ansible.builtin.stat:
@@ -60,7 +68,9 @@
     tags: backup
 
   - name: installation du package mutt et curl pour envoyer des mails depuis le shell
-    ansible.builtin.yum:  name={{ item }} state=latest disable_gpg_check=yes
+    ansible.builtin.package:
+      name: "{{ item }}"
+      state: latest
     loop:
       - mutt
       - curl

@@ -1,0 +1,23 @@
+galaxy_info:
+  role_name: oracle_db_postinstall
+  author: your_name
+  description: Configuration post-installation d'Oracle Database avec scripts et tâches cron
+  company: your_company
+
+  license: MIT
+
+  min_ansible_version: "2.10"
+
+  platforms:
+    - name: EL
+      versions:
+        - "7"
+        - "8"
+        - "9"
+
+  galaxy_tags:
+    - oracle
+    - database
+    - postinstall
+    - scripts
+    - cron
