@@ -84,7 +84,7 @@
   - name: Copier le fichier stub.tar
     ansible.builtin.copy: src=stubs.tar dest={{ oracle_home }}/lib/stubs/stubs.tar owner=oracle
     tags: extract_stubs
-    when: ansible_distribution_major_version == "9"
+    when: ansible_distribution_major_version in ["9", "10"]
 
   # décompression du fichier tar : 
   - name: Extraction des librairies stubs.tar dans OH/lib/stubs/
@@ -93,7 +93,7 @@
     become_method: su
     become_user: oracle
     tags: extract_stubs
-    when: ansible_distribution_major_version == "9"
+    when: ansible_distribution_major_version in ["9", "10"]
 
    # téléchargement de OPatch et Patch Release Update
   - name: Vérifier si le fichier "/u01/sources/{{opatch_file}}" existe
