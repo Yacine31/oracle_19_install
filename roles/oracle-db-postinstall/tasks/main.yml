@@ -10,6 +10,13 @@
       msg: "Prérequis non satisfaits : RAM >= 2GB"
     tags: prerequisites
 
+  - name: Vérifier que Oracle est installé
+    ansible.builtin.stat:
+      path: "{{ oracle_home }}/bin/sqlplus"
+    register: oracle_installed
+    failed_when: not oracle_installed.stat.exists
+    tags: prerequisites
+
   # ---------------------------------------------------
   # récupération des scripts sql
   # ---------------------------------------------------
@@ -18,7 +25,18 @@
       path: "{{ scripts_dir }}"
     register: scripts_directory
 
-  - name: Git Pull car le répertoire existe
+  - name: Cloner le repo scripts si inexistant
+    ansible.builtin.git:
+      repo: https://github.com/Yacine31/sql.git
+      dest: "{{ scripts_dir }}"
+      update: no
+    when: not scripts_directory.stat.exists
+    become: true
+    become_method: su
+    become_user: oracle
+    tags: scripts
+
+  - name: Mettre à jour le repo scripts si existe
     ansible.builtin.git:
       repo: https://github.com/Yacine31/sql.git
       dest: "{{ scripts_dir }}"
@@ -28,6 +46,7 @@
     become: true
     become_method: su
     become_user: oracle
+    tags: scripts
 
   - name: Clonage du repository github SQL car le répertoire n'existe pas
     ansible.builtin.git:
