@@ -14,8 +14,8 @@
 - name: Activation du service de démarrage automatique
   ansible.builtin.systemd:
     name: dbora
-    daemon_reload: yes
     enabled: yes
+  notify: Recharger systemd
   tags: dbora_init
 
 - name: Copie du script de nettoyage ADR Oracle
