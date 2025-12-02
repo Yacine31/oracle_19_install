@@ -36,17 +36,32 @@
     failed_when: checkdbswinstall.stdout != "0"
     tags: checkifexists
 
-  # telechargement des bianaires Oracle si le fichier n'est pas déjà dans /u01/sources
+   # telechargement des bianaires Oracle si le fichier n'est pas déjà dans /u01/sources
+  - name: Télécharger le fichier checksum
+    ansible.builtin.shell: wget --no-check-certificate https://kutt.axiome.io/checksum.txt -O {{ oracle_sources }}/checksum.txt
+    tags: download_sw
+
+  - name: Extraire le checksum attendu
+    ansible.builtin.shell: grep "{{ oracle_zip_filename }}" {{ oracle_sources }}/checksum.txt | awk '{print $1}'
+    register: expected_checksum
+    tags: download_sw
+
   - name: Vérifier si le fichier "{{oracle_zip_filename}}" existe
     ansible.builtin.stat:
       path: "{{ oracle_sources }}/{{oracle_zip_filename}}"
     register: file_check
     tags: download_sw
 
-  - name: Téléchargement des binaires Oracle 
-    ansible.builtin.shell: wget --no-check-certificate https://kutt.axiome.io/db19300 -O {{ oracle_sources }}/{{oracle_zip_filename}}
+  - name: Calculer le checksum actuel si le fichier existe
+    ansible.builtin.shell: sha256sum {{ oracle_sources }}/{{oracle_zip_filename}} | awk '{print $1}'
+    register: current_checksum
+    when: file_check.stat.exists
     tags: download_sw
-    when: not file_check.stat.exists
+
+  - name: Téléchargement des binaires Oracle
+    ansible.builtin.shell: wget --no-check-certificate --continue https://kutt.axiome.io/db19300 -O {{ oracle_sources }}/{{oracle_zip_filename}}
+    tags: download_sw
+    when: not file_check.stat.exists or current_checksum.stdout != expected_checksum.stdout
 
   - name: Extraction des binaires Oracle
     ansible.builtin.unarchive: src={{ oracle_sources }}/{{ oracle_zip_filename }}  dest={{ oracle_home }}
