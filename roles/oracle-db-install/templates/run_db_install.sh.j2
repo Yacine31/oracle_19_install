@@ -1,11 +1,18 @@
 # {{ ansible_managed }}
 #!/bin/bash
 
-chkifinstalled=`grep "{{ oracle_home }}" "{{ oracle_inventory }}/ContentsXML/inventory.xml" |wc -l`
-if [[ $chkifinstalled == 1 ]]; then
-    echo "Error: ORACLE_HOME: {{ oracle_home }} already present. Exiting"
-    exit 0
+# Vérifier si c'est une première installation ou si ORACLE_HOME existe déjà
+if [[ -f "{{ oracle_inventory }}/ContentsXML/inventory.xml" ]]; then
+    chkifinstalled=`grep "{{ oracle_home }}" "{{ oracle_inventory }}/ContentsXML/inventory.xml" | wc -l`
+    if [[ $chkifinstalled -ge 1 ]]; then
+        echo "Error: ORACLE_HOME: {{ oracle_home }} already present. Exiting"
+        exit 0
+    fi
 else
+    echo "First installation - inventory.xml not found, proceeding with installation"
+fi
+
+# Configuration et installation
     linux_version=$(cat /etc/os-release | egrep "^VERSION=" | cut -d= -f2 | sed 's/"//g' | cut -d. -f1)
     if [ "${linux_version}" -ge 9 ]
     then
