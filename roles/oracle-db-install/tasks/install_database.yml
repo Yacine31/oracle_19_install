@@ -41,10 +41,20 @@
     ansible.builtin.shell: wget --no-check-certificate https://kutt.axiome.io/checksum -O {{ oracle_sources }}/checksum.txt
     tags: download_sw
 
-  - name: Extraire le checksum attendu
+  - name: Extraire le checksum attendu pour {{ oracle_zip_filename }}
     ansible.builtin.shell: grep "{{ oracle_zip_filename }}" {{ oracle_sources }}/checksum.txt | awk '{print $1}'
     register: expected_checksum
     tags: download_sw
+
+  - name: Extraire le checksum attendu pour {{ opatch_file }}
+    ansible.builtin.shell: grep "{{ opatch_file }}" {{ oracle_sources }}/checksum.txt | awk '{print $1}'
+    register: opatch_expected_checksum
+    tags: download_opatch
+
+  - name: Extraire le checksum attendu pour {{ psu_file }}
+    ansible.builtin.shell: grep "{{ psu_file }}" {{ oracle_sources }}/checksum.txt | awk '{print $1}'
+    register: psu_expected_checksum
+    tags: download_ru
 
   - name: Vérifier si le fichier "{{oracle_zip_filename}}" existe
     ansible.builtin.stat:
@@ -85,28 +95,40 @@
     tags: extract_stubs
     when: ansible_distribution_major_version == "9"
 
-  # téléchargeent de OPatch et Patch Release Update 
+   # téléchargement de OPatch et Patch Release Update
   - name: Vérifier si le fichier "/u01/sources/{{opatch_file}}" existe
     ansible.builtin.stat:
       path: "/u01/sources/{{opatch_file}}"
     register: opatch_file_check
     tags: download_opatch
 
-  - name: Téléchargement OPatch
-    ansible.builtin.shell: wget --no-check-certificate https://kutt.axiome.io/opatch -O /u01/sources/{{opatch_file}}
+  - name: Calculer le checksum actuel pour {{ opatch_file }} si existe
+    ansible.builtin.shell: sha256sum /u01/sources/{{opatch_file}} | awk '{print $1}'
+    register: opatch_current_checksum
+    when: opatch_file_check.stat.exists
     tags: download_opatch
-    when: not opatch_file_check.stat.exists
+
+  - name: Téléchargement OPatch
+    ansible.builtin.shell: wget --no-check-certificate --continue https://kutt.axiome.io/opatch -O /u01/sources/{{opatch_file}}
+    tags: download_opatch
+    when: not opatch_file_check.stat.exists or opatch_current_checksum.stdout != opatch_expected_checksum.stdout
 
   - name: Vérifier si le fichier "/u01/sources/{{psu_file}}" existe
     ansible.builtin.stat:
       path: "/u01/sources/{{psu_file}}"
     register: ru_file_check
-    tags: download_opatch
+    tags: download_ru
+
+  - name: Calculer le checksum actuel pour {{ psu_file }} si existe
+    ansible.builtin.shell: sha256sum /u01/sources/{{psu_file}} | awk '{print $1}'
+    register: psu_current_checksum
+    when: ru_file_check.stat.exists
+    tags: download_ru
 
   - name: Téléchargement du PSU
-    ansible.builtin.shell: wget --no-check-certificate https://kutt.axiome.io/db_ru -O /u01/sources/{{psu_file}}
+    ansible.builtin.shell: wget --no-check-certificate --continue https://kutt.axiome.io/db_ru -O /u01/sources/{{psu_file}}
     tags: download_ru
-    when: not ru_file_check.stat.exists
+    when: not ru_file_check.stat.exists or psu_current_checksum.stdout != psu_expected_checksum.stdout
 
   # decompression de OPatch dans $ORACLE_HOME
   - name: Installation OPatch dns ORACLE_HOME
