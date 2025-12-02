@@ -1,4 +1,5 @@
 ---
+---
 #
 # post configuration d'une installation de base de données Oracle
 #
@@ -20,46 +21,18 @@
   # ---------------------------------------------------
   # récupération des scripts sql
   # ---------------------------------------------------
-  - name: Vérifier si le répertoire scripts existe
-    ansible.builtin.stat:
-      path: "{{ scripts_dir }}"
-    register: scripts_directory
-
-  - name: Cloner le repo scripts si inexistant
-    ansible.builtin.git:
-      repo: https://github.com/Yacine31/sql.git
-      dest: "{{ scripts_dir }}"
-      update: no
-    when: not scripts_directory.stat.exists
-    become: true
-    become_method: su
-    become_user: oracle
-    tags: scripts
-
-  - name: Mettre à jour le repo scripts si existe
-    ansible.builtin.git:
+- name: Gérer le repository des scripts SQL
+     ansible.builtin.git:
       repo: https://github.com/Yacine31/sql.git
       dest: "{{ scripts_dir }}"
       update: yes
       force: yes
-    when: scripts_directory.stat.exists
-    become: true
-    become_method: su
-    become_user: oracle
-    tags: scripts
-
-  - name: Clonage du repository github SQL car le répertoire n'existe pas
-    ansible.builtin.git:
-      repo: https://github.com/Yacine31/sql.git
-      dest: "{{ scripts_dir }}"
-      clone: yes
-      update: yes
-      force: yes
-    when: not scripts_directory.stat.exists
-    ignore_errors: true
-    become: true
-    become_method: su
-    become_user: oracle
+     become: true
+     become_method: su
+     become_user: oracle
+     register: git_result
+     failed_when: git_result.failed and 'already exists' not in git_result.msg
+     tags: scripts
 
   # ---------------------------------------------------
   # changement du propriétaire de root en oracle 
