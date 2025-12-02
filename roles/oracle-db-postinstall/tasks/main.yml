@@ -10,11 +10,8 @@
     msg: "Prérequis non satisfaits : RAM >= 2GB"
   tags: prerequisites
 
-- name: Vérifier que Oracle est installé
-  ansible.builtin.stat:
-    path: "{{ oracle_home }}/bin/sqlplus"
-  register: oracle_installed
-  failed_when: not oracle_installed.stat.exists
+- name: Inclure les validations des chemins et fichiers
+  ansible.builtin.include_tasks: validations.yml
   tags: prerequisites
 
 # ---------------------------------------------------

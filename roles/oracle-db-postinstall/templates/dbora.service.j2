@@ -1,14 +1,22 @@
 [Unit]
-Description=Start Oracle Database
-After=multi-user.target
+Description=Oracle Database Startup Service
 After=network.target
+After=local-fs.target
+After=remote-fs.target
+Requires=network.target
 
 [Service]
-Type=simple
-ExecStart=/usr/bin/su - oracle -c "{{oracle_home}}/bin/dbstart {{oracle_home}}"
-ExecStop=/usr/bin/su - oracle -c "{{oracle_home}}/bin/dbshut {{oracle_home}}"
+Type=oneshot
+User=oracle
+Group=oinstall
+Environment=ORACLE_HOME={{ oracle_home }}
+Environment=ORACLE_BASE={{ oracle_base }}
+WorkingDirectory={{ oracle_base }}
+ExecStart={{ oracle_home }}/bin/dbstart {{ oracle_home }}
+ExecStop={{ oracle_home }}/bin/dbshut {{ oracle_home }}
 TimeoutSec=900
 RemainAfterExit=yes
+Restart=no
 
 [Install]
 WantedBy=multi-user.target

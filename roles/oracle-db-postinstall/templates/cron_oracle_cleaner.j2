@@ -1,6 +1,7 @@
 #!/bin/bash
 
 export ORACLE_BASE={{ oracle_base }}
+export SCRIPTS_DIR={{ scripts_dir }}
 
 export ADMIN_DIR=${ORACLE_BASE}/admin
 export RDBMS_LOG_DIR=${ORACLE_BASE}/diag/rdbms
@@ -10,7 +11,7 @@ export LSNR_LOG_DIR=${ORACLE_BASE}/diag/tnslsnr
 export DAYS=3
 
 # Fichier log pour la date du jour
-LOG_DIR="/home/oracle/scripts/logs"
+LOG_DIR="${SCRIPTS_DIR}/logs"
 mkdir -p $LOG_DIR
 LOG_FILE="$LOG_DIR/clean_$(date +%Y%m%d).log"
 

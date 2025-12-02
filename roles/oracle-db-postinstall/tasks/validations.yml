@@ -1,0 +1,32 @@
+---
+#
+# Validations préalables pour le rôle oracle-db-postinstall
+#
+
+- name: Vérifier que le répertoire scripts_dir existe
+  ansible.builtin.stat:
+    path: "{{ scripts_dir }}"
+  register: scripts_dir_check
+  failed_when: not scripts_dir_check.stat.exists
+  tags: prerequisites
+
+- name: Vérifier que ORACLE_HOME est accessible
+  ansible.builtin.stat:
+    path: "{{ oracle_home }}"
+  register: oracle_home_check
+  failed_when: not oracle_home_check.stat.exists
+  tags: prerequisites
+
+- name: Vérifier que les binaires Oracle existent
+  ansible.builtin.stat:
+    path: "{{ oracle_home }}/bin/sqlplus"
+  register: sqlplus_check
+  failed_when: not sqlplus_check.stat.exists
+  tags: prerequisites
+
+- name: Vérifier que dbstart et dbshut existent
+  ansible.builtin.stat:
+    path: "{{ oracle_home }}/bin/dbstart"
+  register: dbstart_check
+  failed_when: not dbstart_check.stat.exists
+  tags: prerequisites
