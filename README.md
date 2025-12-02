@@ -6,9 +6,22 @@
 - Droits root requis pour l'exécution des playbooks
 - Collections Ansible : `ansible.posix` (installée automatiquement par le script)
 
-Pour Oracle Linux 9 et 10 l'installation Ansible est légèrement différente de Linux 7 ou 8.
+## Initialisation rapide
 
-Exécuter ce code en tant que root pour installer les préreuis et récupérer les books ansible : 
+Pour Oracle Linux 9 et 10, l'installation Ansible est légèrement différente de Linux 7 ou 8.
+
+**Méthode recommandée :** Utilisez le script d'initialisation fourni :
+
+```bash
+# Télécharger et exécuter le script d'initialisation (en tant que root)
+curl -fsSL https://raw.githubusercontent.com/Yacine31/oracle_19_install/main/init_oracle_install.sh | bash
+
+# Ou si vous avez déjà cloné le repo :
+cd oracle_19_install
+./init_oracle_install.sh
+```
+
+**Méthode manuelle :** Si vous préférez exécuter manuellement :
 
 ```bash
 #!/bin/bash
@@ -36,7 +49,7 @@ echo "Récupération du scripts depuis github."
 git clone https://github.com/Yacine31/oracle_19_install
 ```
 
-changement de répertoire
+Puis changer de répertoire :
 ```bash
 cd oracle_19_install
 ```
@@ -60,25 +73,91 @@ ansible-playbook -i hosts oracle-db-preinstall.yml -e 'ansible_python_interprete
 ansible-playbook -i hosts oracle-db-install.yml 
 ```
 
-Les valeurs par défaut : 
-```YAML
+## Configuration des variables
+
+Toutes les variables communes sont centralisées dans `group_vars/all.yml` pour éviter la duplication :
+
+```yaml
+# Variables communes Oracle (group_vars/all.yml)
 oracle_version: "19.0.0"
 oracle_base: "/u01/app/oracle"
-oracle_home: "{{ oracle_base }}/product/{{oracle_version}}/dbhome_1"
+dbhome: "dbhome_1"
+oracle_home: "{{ oracle_base }}/product/{{oracle_version}}/{{ dbhome }}"
 oracle_inventory: "/u01/app/oraInventory"
 oracle_sources: "/u01/sources"
 oracle_oradata: "/u02/oradata/"
 oracle_fra: "/u03/fast_recovery_area/"
+
+# Variables de configuration
+full_configuration: true
+secure_configuration: false
+scripts_dir: "/home/oracle/scripts"
+
+# Variables spécifiques au rôle d'installation (roles/oracle-db-install/defaults/main.yml)
 oracle_install_edition: "EE"               # SE2 (Standard Edition 2) ou EE
+oracle_zip_filename: "Oracle_Database_19.3.0.0.0_for_Linux_x86-64.zip"
 ```
 
-Pour l'exécuter avec des variables différentes : 
+## Personnalisation des variables
+
+### Modification des variables communes
+
+Pour modifier les variables communes (dans `group_vars/all.yml`) :
 
 ```bash
-ansible-playbook -i hosts oracle-db-install.yml --extra-vars "oracle_install_edition=SE2 oracle_version=19c oracle_base=/opt/oracle oracle_home=/opt/oracle/product/19c/dbhome_1"
+# Éditer le fichier des variables communes
+vim group_vars/all.yml
+
+# Exemple de personnalisation :
+oracle_base: "/opt/oracle"
+oracle_version: "19.3.0"
+scripts_dir: "/home/oracle/custom_scripts"
+```
+
+### Variables spécifiques aux rôles
+
+Chaque rôle peut avoir ses propres variables dans `roles/<role>/defaults/main.yml`.
+
+### Surcharge via la ligne de commande
+
+Pour surcharger temporairement des variables :
+
+```bash
+# Exemple pour installer SE2 au lieu d'EE
+ansible-playbook -i hosts oracle-db-install.yml --extra-vars "oracle_install_edition=SE2"
+
+# Exemple avec un oracle_base personnalisé
+ansible-playbook -i hosts oracle-db-install.yml --extra-vars "oracle_base=/opt/oracle"
 ```
 
 3. Exécution Postinstall : copie des scripts d'exploitation
 ```bash
-ansible-playbook -i hosts oracle-db-postinstall.yml 
+ansible-playbook -i hosts oracle-db-postinstall.yml
+```
+
+## Structure du projet
+
+```
+oracle_19_install/
+├── group_vars/
+│   └── all.yml                    # Variables communes à tous les rôles
+├── roles/
+│   ├── oracle-db-preinstall/      # Configuration système pré-installation
+│   │   ├── defaults/main.yml      # Variables spécifiques au rôle
+│   │   ├── tasks/
+│   │   │   ├── main.yml          # Tâches principales
+│   │   │   ├── validations.yml   # Validations préalables
+│   │   │   └── [autres fichiers...]
+│   │   └── templates/            # Templates Jinja2
+│   ├── oracle-db-install/         # Installation des binaires Oracle
+│   └── oracle-db-postinstall/     # Configuration post-installation
+│       ├── handlers/main.yml     # Gestionnaires d'événements
+│       └── tasks/
+│           ├── scripts.yml       # Gestion des scripts
+│           ├── backup.yml        # Configuration sauvegardes
+│           └── services.yml      # Services système
+├── init_oracle_install.sh         # Script d'initialisation
+├── hosts                          # Inventaire Ansible
+├── oracle-db-*.yml               # Playbooks principaux
+└── README.md                     # Cette documentation
 ```
