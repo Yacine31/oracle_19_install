@@ -15,7 +15,3 @@
   - include_tasks: install_database.yml
     tags: install_db
 
-# Application du patch (décommenter si nécessaire)
-#  - include_tasks: opatch_apply.yml
-#    tags: patch
-
