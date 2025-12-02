@@ -1,0 +1,13 @@
+---
+#
+# Handlers pour le rôle oracle-db-postinstall
+#
+
+- name: Recharger systemd
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Redémarrer cron
+  ansible.builtin.service:
+    name: crond
+    state: restarted
