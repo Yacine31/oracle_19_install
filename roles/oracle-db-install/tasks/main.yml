@@ -15,11 +15,7 @@
   - include_tasks: install_database.yml
     tags: install_db
 
-# telechargement des fihiers : opatch + PSU-RU
-#  - include_tasks: download_software.yml
-#    tags: download
-
-# Application du patch
+# Application du patch (décommenter si nécessaire)
 #  - include_tasks: opatch_apply.yml
 #    tags: patch
 

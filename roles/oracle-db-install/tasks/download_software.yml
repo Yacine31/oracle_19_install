@@ -1,8 +1,0 @@
----
-  - name: Téléchargement OPatch
-    ansible.builtin.shell: wget --no-check-certificate https://kutt.axiome.io/opatch -O /u01/sources/{{opatch_file}}
-    tags: download_opatch
-
-  - name: Téléchargement du PSU
-    ansible.builtin.shell: wget --no-check-certificate https://kutt.axiome.io/db_ru -O /u01/sources/{{psu_file}}
-    tags: download_ru
