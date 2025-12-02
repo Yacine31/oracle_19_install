@@ -38,7 +38,7 @@
 
    # telechargement des bianaires Oracle si le fichier n'est pas déjà dans /u01/sources
   - name: Télécharger le fichier checksum
-    ansible.builtin.shell: wget --no-check-certificate https://kutt.axiome.io/checksum.txt -O {{ oracle_sources }}/checksum.txt
+    ansible.builtin.shell: wget --no-check-certificate https://kutt.axiome.io/checksum -O {{ oracle_sources }}/checksum.txt
     tags: download_sw
 
   - name: Extraire le checksum attendu
