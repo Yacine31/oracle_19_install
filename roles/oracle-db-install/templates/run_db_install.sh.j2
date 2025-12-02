@@ -7,7 +7,7 @@ if [[ $chkifinstalled == 1 ]]; then
     exit 0
 else
     linux_version=$(cat /etc/os-release | egrep "^VERSION=" | cut -d= -f2 | sed 's/"//g' | cut -d. -f1)
-    if [ "${linux_version}" -eq 9 ]
+    if [ "${linux_version}" -ge 9 ]
     then
         export CV_ASSUME_DISTID=OL8
     else

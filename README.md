@@ -2,11 +2,11 @@
 
 ## Prérequis
 
-- Systèmes d'exploitation supportés : Oracle Linux 7, 8 ou 9
+- Systèmes d'exploitation supportés : Oracle Linux 7, 8, 9 ou 10
 - Droits root requis pour l'exécution des playbooks
 - Collections Ansible : `ansible.posix` (installée automatiquement par le script)
 
-Pour Oracle Linux 9 l'installation Ansible est légèrement différente de Linux 7 ou 8 :
+Pour Oracle Linux 9 et 10 l'installation Ansible est légèrement différente de Linux 7 ou 8 :
 
 Exécuter ce code en tant que root pour installer les préreuis et récupérer les books ansible : 
 
@@ -22,8 +22,8 @@ if [[ $linux_version == "7" || $linux_version == "8" ]]; then
     dnf install -y oracle-epel-release-el${linux_version}
     dnf install -y git ansible
     ansible-galaxy collection install ansible.posix
-elif [[ $linux_version == "9" ]]; then
-    echo "Version Oracle Linux 9 détectée."
+elif [[ $linux_version == "9" || $linux_version == "10" ]]; then
+    echo "Version Oracle Linux 9 ou 10 détectée."
     dnf install -y git ansible-core
     ansible-galaxy collection install ansible.posix
 else
