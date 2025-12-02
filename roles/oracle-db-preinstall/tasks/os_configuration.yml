@@ -123,7 +123,17 @@
     ansible.builtin.shell: systemctl set-default multi-user.target
     tags: init3
 
-  # --------------------------------------------------- 
+  # ---------------------------------------------------
+  # Fix for Oracle on OL10
+  # ---------------------------------------------------
+  - name: Fix libnsl.so.1 for Oracle on OL10
+    ansible.builtin.shell: |
+      rm -f /usr/lib64/libnsl.so.1
+      ln -s /usr/lib64/libnsl.so.3.0.0 /usr/lib64/libnsl.so.1
+    when: ansible_distribution_major_version == "10"
+    tags: ol10_fix
+
+  # ---------------------------------------------------
   # configuration Linux : config oracle pour logrotate
   # Gestion des fichiers logs seulement (archivage et réinitialisation)
   # ---------------------------------------------------
