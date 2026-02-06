@@ -6,15 +6,14 @@
 # installation des binaires ORACLE et patch
 #
 
-  - name: Vérifier les prérequis pour l'installation
-    ansible.builtin.assert:
-      that:
-        - ansible_memtotal_mb >= 4096
-        - ansible_processor_vcpus >= 2
-      msg: "Prérequis non satisfaits pour Oracle : RAM >= 4GB, CPU >= 2"
-    tags: prerequisites
+- name: Vérifier les prérequis pour l'installation
+  ansible.builtin.assert:
+    that:
+      - ansible_memtotal_mb >= 4096
+      - ansible_processor_vcpus >= 2
+    msg: "Prérequis non satisfaits pour Oracle : RAM >= 4GB, CPU >= 2"
+  tags: prerequisites
 
 # installation des binaires Oracle DB
-  - include_tasks: install_database.yml
-    tags: install_db
-
+- include_tasks: install_database.yml
+  tags: install_db
