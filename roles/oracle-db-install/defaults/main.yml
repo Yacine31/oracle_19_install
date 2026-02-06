@@ -1,7 +1,12 @@
 ---
 # defaults file for oracle-db-install
+
 # Cette variable définit la version d'Oracle à installer (ex: "19c" ou "26ai").
 # Les variables définies ici ont la plus faible priorité dans Ansible.
 # La valeur "19c" sera utilisée uniquement si 'oracle_version' n'est pas définie
 # dans l'inventaire, le playbook, ou via la ligne de commande (extra-vars).
 oracle_version: "19c"
+
+# Espace disque libre minimum requis (en Go)
+u01_free_space_gb: 30
+tmp_free_space_gb: 2
