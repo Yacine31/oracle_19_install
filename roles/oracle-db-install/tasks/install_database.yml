@@ -210,15 +210,15 @@
     tags: opatch
 
   # application du patch RU
-    - name: patch conflict detection
-      ansible.builtin.shell: export ORACLE_HOME={{ oracle_home}}; cd {{ oracle_sources }}/{{ patch_number }}; $ORACLE_HOME/OPatch/opatch prereq CheckConflictAgainstOHWithDetail -ph ./
-      register: conflict_detection
-      failed_when: "'Prereq \"checkConflictAgainstOHWithDetail\" passed.' not in conflict_detection.stdout"
-      become: true
-      become_method: su
-      become_user: oracle
-      tags: patch_db
-      when: oracle_version == "19c"
+  - name: patch conflict detection
+    ansible.builtin.shell: export ORACLE_HOME={{ oracle_home}}; cd {{ oracle_sources }}/{{ patch_number }}; $ORACLE_HOME/OPatch/opatch prereq CheckConflictAgainstOHWithDetail -ph ./
+    register: conflict_detection
+    failed_when: "'Prereq \"checkConflictAgainstOHWithDetail\" passed.' not in conflict_detection.stdout"
+    become: true
+    become_method: su
+    become_user: oracle
+    tags: patch_db
+    when: oracle_version == "19c"
 
   - name: Application du patch 
     ansible.builtin.shell: export ORACLE_HOME={{ oracle_home}}; cd {{ oracle_sources }}/{{ patch_number }}; $ORACLE_HOME/OPatch/opatch apply -silent
