@@ -19,3 +19,6 @@ scripts_dir: "/home/oracle/scripts"
 # Mots de passe utilisateurs système (en clair - seront hashés automatiquement)
 oracle_user_password: "Oracle123"
 grid_user_password: "Grid123"
+
+# Édition d'installation Oracle (EE = Enterprise Edition, SE2 = Standard Edition 2)
+oracle_install_edition: "EE"
