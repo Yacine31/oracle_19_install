@@ -20,8 +20,6 @@ fi
     else
         export CV_ASSUME_DISTID=OEL7.6
     fi
-    # Application du patch {{ patch_number }} et execution de runInstaller
-    # {{ oracle_home }}/runInstaller -applyRU /u01/sources/{{ patch_number }} -responseFile {{ oracle_sources }}/{{ db_response_file }} -ignorePrereqFailure -silent -waitforcompletion
     {{ oracle_home }}/runInstaller -responseFile {{ oracle_sources }}/{{ db_response_file }} -ignorePrereqFailure -silent -waitforcompletion
 fi
 
