@@ -15,4 +15,4 @@ checksum_url: "https://kutt.axiome.io/checksum"
 
 
 # Pour le nom du template de fichier de réponse db_install_26ai.j2 (exemple)
-db_template_version_string: "26ai" 
+db_template_version_string: "23.0.0" 
