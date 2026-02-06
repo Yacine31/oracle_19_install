@@ -270,6 +270,7 @@
 
   - ansible.builtin.debug: var=opatchls.stdout_lines
     tags: patch_db
+    when: oracle_version == "19c"
 
   # suppression des binaires, du fichier de réponse et du script d'install
   - name: suppression du fichier de réponse
