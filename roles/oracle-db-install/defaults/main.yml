@@ -10,3 +10,6 @@ oracle_version: "19c"
 # Espace disque libre minimum requis (en Go)
 u01_free_space_gb: 30
 tmp_free_space_gb: 2
+
+# Nom du fichier de réponse pour l'installation silencieuse
+db_response_file: "db_install.rsp"
