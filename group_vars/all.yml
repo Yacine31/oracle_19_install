@@ -2,10 +2,22 @@
 # Variables communes Oracle partagées entre tous les rôles
 # Ces variables sont automatiquement chargées par Ansible pour tous les hôtes
 
-oracle_version: "19.0.0"
+# La variable 'oracle_version' est l'alias à utiliser pour sélectionner la version
+# (ex: '19c' ou '26ai'). Elle est définie par défaut dans le rôle 'oracle-db-install'.
+# Vous pouvez la surcharger en ligne de commande : -e "oracle_version=26ai"
+
+# Table de correspondance entre l'alias et la version numérique
+oracle_version_map:
+  "19c": "19.0.0"
+  "26ai": "23.0.0"
+
+# Dérivation automatique de la version numérique
+oracle_numeric_version: "{{ oracle_version_map[oracle_version] }}"
+
 oracle_base: "/u01/app/oracle"
 dbhome: "dbhome_1"
-oracle_home: "{{ oracle_base }}/product/{{oracle_version}}/{{ dbhome }}"
+# oracle_home utilise maintenant la version numérique correcte
+oracle_home: "{{ oracle_base }}/product/{{ oracle_numeric_version }}/{{ dbhome }}"
 oracle_inventory: "/u01/app/oraInventory"
 oracle_sources: "/u01/sources"
 oracle_oradata: "/u02/oradata/"
