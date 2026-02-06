@@ -38,7 +38,7 @@
 
    # telechargement des bianaires Oracle si le fichier n'est pas déjà dans /u01/sources
   - name: Télécharger le fichier checksum
-    ansible.builtin.shell: wget --no-check-certificate https://kutt.axiome.io/checksum -O {{ oracle_sources }}/checksum.txt
+    ansible.builtin.shell: wget --no-check-certificate {{ checksum_url }} -O {{ oracle_sources }}/checksum.txt
     tags: download_sw
 
   - name: Extraire le checksum attendu pour {{ oracle_zip_filename }}
@@ -50,11 +50,13 @@
     ansible.builtin.shell: grep "{{ opatch_file }}" {{ oracle_sources }}/checksum.txt | awk '{print $1}'
     register: opatch_expected_checksum
     tags: download_opatch
+    when: oracle_version == "19c"
 
   - name: Extraire le checksum attendu pour {{ psu_file }}
     ansible.builtin.shell: grep "{{ psu_file }}" {{ oracle_sources }}/checksum.txt | awk '{print $1}'
     register: psu_expected_checksum
     tags: download_ru
+    when: oracle_version == "19c"
 
   - name: Vérifier si le fichier "{{oracle_zip_filename}}" existe
     ansible.builtin.stat:
@@ -69,7 +71,7 @@
     tags: download_sw
 
   - name: Téléchargement des binaires Oracle
-    ansible.builtin.shell: wget --no-check-certificate --continue https://kutt.axiome.io/db19300 -O {{ oracle_sources }}/{{oracle_zip_filename}}
+    ansible.builtin.shell: wget --no-check-certificate --continue {{ oracle_binary_url }} -O {{ oracle_sources }}/{{oracle_zip_filename}}
     tags: download_sw
     when: not file_check.stat.exists or current_checksum.stdout != expected_checksum.stdout
 
@@ -101,53 +103,65 @@
       path: "/u01/sources/{{opatch_file}}"
     register: opatch_file_check
     tags: download_opatch
+    when: oracle_version == "19c"
 
   - name: Calculer le checksum actuel pour {{ opatch_file }} si existe
     ansible.builtin.shell: sha256sum /u01/sources/{{opatch_file}} | awk '{print $1}'
     register: opatch_current_checksum
-    when: opatch_file_check.stat.exists
+    when: oracle_version == "19c" and opatch_file_check.stat.exists
     tags: download_opatch
 
   - name: Téléchargement OPatch
-    ansible.builtin.shell: wget --no-check-certificate --continue https://kutt.axiome.io/opatch -O /u01/sources/{{opatch_file}}
+    ansible.builtin.shell: wget --no-check-certificate --continue {{ opatch_download_url }} -O /u01/sources/{{opatch_file}}
     tags: download_opatch
-    when: not opatch_file_check.stat.exists or opatch_current_checksum.stdout != opatch_expected_checksum.stdout
+    when: oracle_version == "19c" and (not opatch_file_check.stat.exists or opatch_current_checksum.stdout != opatch_expected_checksum.stdout)
 
   - name: Vérifier si le fichier "/u01/sources/{{psu_file}}" existe
     ansible.builtin.stat:
       path: "/u01/sources/{{psu_file}}"
     register: ru_file_check
     tags: download_ru
+    when: oracle_version == "19c"
 
   - name: Calculer le checksum actuel pour {{ psu_file }} si existe
     ansible.builtin.shell: sha256sum /u01/sources/{{psu_file}} | awk '{print $1}'
     register: psu_current_checksum
-    when: ru_file_check.stat.exists
+    when: oracle_version == "19c" and ru_file_check.stat.exists
     tags: download_ru
 
   - name: Téléchargement du PSU
-    ansible.builtin.shell: wget --no-check-certificate --continue https://kutt.axiome.io/db_ru -O /u01/sources/{{psu_file}}
+    ansible.builtin.shell: wget --no-check-certificate --continue {{ psu_download_url }} -O /u01/sources/{{psu_file}}
     tags: download_ru
-    when: not ru_file_check.stat.exists or psu_current_checksum.stdout != psu_expected_checksum.stdout
+    when: oracle_version == "19c" and (not ru_file_check.stat.exists or psu_current_checksum.stdout != psu_expected_checksum.stdout)
+
+  # Le numéro du patch est extrait du nom du fichier PSU (psu_file).
+  # L'expression régulière 'p(\\d+)_' cherche un 'p' suivi d'un ou plusieurs chiffres (capturés dans le groupe 1), puis un '_'.
+  # Exemple : pour "p33549642_190000_Linux-x86-64.zip", elle extrait "33549642".
+  - name: Extraire le numéro de patch de psu_file
+    ansible.builtin.set_fact:
+      patch_number: "{{ psu_file | regex_search('p(\\d+)_', '\\1') | first }}"
+    when: oracle_version == "19c"
 
   # decompression de OPatch dans $ORACLE_HOME
   - name: Installation OPatch dns ORACLE_HOME
-    ansible.builtin.unarchive: src={{ patch_dir }}/{{ opatch_file }} dest={{ oracle_home }}
+    ansible.builtin.unarchive: src={{ oracle_sources }}/{{ opatch_file }} dest={{ oracle_home }}
     become: true
     become_method: su
     become_user: oracle
     tags: patch_db
+    when: oracle_version == "19c"
 
   # extract du patch dans /u01/sources
   - name: unzip du patch
-    ansible.builtin.unarchive: src={{ patch_dir }}/{{ psu_file }} dest={{ patch_dir }}
+    ansible.builtin.unarchive: src={{ oracle_sources }}/{{ psu_file }} dest={{ oracle_sources }}
     become: true
     become_method: su
     become_user: oracle
     tags: patch_db
+    when: oracle_version == "19c"
 
   - name: Copie du fichier de réponse pour installation silencieuse
-    ansible.builtin.template: src=db_install_{{ oracle_version }}.j2 dest={{ oracle_sources }}/{{ db_response_file }}
+    ansible.builtin.template: src=db_install_{{ db_template_version_string }}.j2 dest={{ oracle_sources }}/{{ db_response_file }}
     tags: responsefile
 
   - name: Création du script d installation silencieuse
@@ -196,23 +210,25 @@
     tags: opatch
 
   # application du patch RU
-  - name: patch conflict detection
-    ansible.builtin.shell: export ORACLE_HOME={{ oracle_home }}; cd {{ patch_dir }}/{{ patch_number }}; $ORACLE_HOME/OPatch/opatch prereq CheckConflictAgainstOHWithDetail -ph ./
-    register: conflict_detection
-    failed_when: "'Prereq \"checkConflictAgainstOHWithDetail\" passed.' not in conflict_detection.stdout"
-    become: true
-    become_method: su
-    become_user: oracle
-    tags: patch_db
+    - name: patch conflict detection
+      ansible.builtin.shell: export ORACLE_HOME={{ oracle_home}}; cd {{ oracle_sources }}/{{ patch_number }}; $ORACLE_HOME/OPatch/opatch prereq CheckConflictAgainstOHWithDetail -ph ./
+      register: conflict_detection
+      failed_when: "'Prereq \"checkConflictAgainstOHWithDetail\" passed.' not in conflict_detection.stdout"
+      become: true
+      become_method: su
+      become_user: oracle
+      tags: patch_db
+      when: oracle_version == "19c"
 
   - name: Application du patch 
-    ansible.builtin.shell: export ORACLE_HOME={{ oracle_home}}; cd {{ patch_dir }}/{{ patch_number }}; $ORACLE_HOME/OPatch/opatch apply -silent
+    ansible.builtin.shell: export ORACLE_HOME={{ oracle_home}}; cd {{ oracle_sources }}/{{ patch_number }}; $ORACLE_HOME/OPatch/opatch apply -silent
     register: apply_psu
     failed_when: "'OPatch succeeded.' not in apply_psu.stdout"
     become: true
     become_method: su
     become_user: oracle
     tags: patch_db
+    when: oracle_version == "19c"
     
   - name: Résultat de l'installation via OPatch
     ansible.builtin.shell: "{{ oracle_home }}/OPatch/opatch lspatches"
@@ -221,6 +237,7 @@
     become_user: oracle
     register: opatchls
     tags: patch_db
+    when: oracle_version == "19c"
 
   - ansible.builtin.debug: var=opatchls.stdout_lines
     tags: patch_db
@@ -239,11 +256,14 @@
   - name: Nettoyage du répertoire du patch
     ansible.builtin.file: path={{ oracle_sources }}/{{ patch_number }} state=absent
     tags: patch_db
+    when: oracle_version == "19c"
 
   - name: suppression du fichier OPatch
     ansible.builtin.file: path={{ oracle_sources }}/{{ opatch_file }} state=absent
     tags: patch_db
+    when: oracle_version == "19c"
 
   - name: suppression du Patch RU
     ansible.builtin.file: path={{ oracle_sources }}/{{ psu_file }} state=absent
     tags: patch_db
+    when: oracle_version == "19c"

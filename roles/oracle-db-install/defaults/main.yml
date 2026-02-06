@@ -1,20 +1,7 @@
 ---
-# Variables par défaut surchargeables pour oracle-db-install
-# Les variables communes sont lues depuis group_vars/all.yml
-
-oracle_install_edition: "EE"
-oracle_zip_filename: "Oracle_Database_19.3.0.0.0_for_Linux_x86-64.zip"
-
-u01_free_space_gb: 8
-tmp_free_space_gb: 1
-etc_free_spage_gb: 1
-var_free_spage_gb: 1
-
-db_response_file: "install_db_{{ oracle_version }}.rsp"
-
-u01_size_gb: 1
-tmp_size_gb: 1
-patch_dir: "{{ oracle_sources }}"
-opatch_file: p6880880_190000_Linux-x86-64.zip
-psu_file: patch_ru.zip
-patch_number: 36233263
+# defaults file for oracle-db-install
+# Cette variable définit la version d'Oracle à installer (ex: "19c" ou "26ai").
+# Les variables définies ici ont la plus faible priorité dans Ansible.
+# La valeur "19c" sera utilisée uniquement si 'oracle_version' n'est pas définie
+# dans l'inventaire, le playbook, ou via la ligne de commande (extra-vars).
+oracle_version: "19c"

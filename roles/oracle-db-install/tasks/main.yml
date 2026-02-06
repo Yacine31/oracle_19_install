@@ -1,4 +1,7 @@
 ---
+- name: "Load variables for Oracle version {{ oracle_version }}"
+  include_vars: "{{ oracle_version }}.yml"
+
 #
 # installation des binaires ORACLE et patch
 #

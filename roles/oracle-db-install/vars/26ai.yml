@@ -1,0 +1,18 @@
+---
+# roles/oracle-db-install/vars/26ai.yml
+
+# Variables pour l'installation d'Oracle 26ai
+oracle_binary_url: "https://kutt.axiome.io/db26ai"
+oracle_zip_filename: "LINUX.X64_2326100_db_home.zip"
+
+checksum_url: "https://kutt.axiome.io/checksum"
+
+# Selon votre indication, pas de patchs spécifiques pour 26ai à ce stade
+# opatch_download_url: ""
+# opatch_file: ""
+# psu_download_url: ""
+# psu_file: ""
+
+
+# Pour le nom du template de fichier de réponse db_install_26ai.j2 (exemple)
+db_template_version_string: "26ai" 
