@@ -45,16 +45,39 @@
     ansible.builtin.shell: grep "{{ oracle_zip_filename }}" {{ oracle_sources }}/checksum.txt | awk '{print $1}'
     register: expected_checksum
     tags: download_sw
+    changed_when: false
+
+  - name: Vérifier que le checksum a été trouvé pour {{ oracle_zip_filename }}
+    ansible.builtin.fail:
+      msg: "Le checksum pour le fichier '{{ oracle_zip_filename }}' n'a pas été trouvé dans le fichier checksum.txt."
+    when: expected_checksum.stdout | length == 0
+    tags: download_sw
 
   - name: Extraire le checksum attendu pour {{ opatch_file }}
     ansible.builtin.shell: grep "{{ opatch_file }}" {{ oracle_sources }}/checksum.txt | awk '{print $1}'
     register: opatch_expected_checksum
     tags: download_opatch
     when: oracle_version == "19c"
+    changed_when: false
+
+  - name: Vérifier que le checksum a été trouvé pour {{ opatch_file }}
+    ansible.builtin.fail:
+      msg: "Le checksum pour le fichier '{{ opatch_file }}' n'a pas été trouvé dans le fichier checksum.txt."
+    when: opatch_expected_checksum.stdout | length == 0
+    tags: download_opatch
+    when: oracle_version == "19c"
 
   - name: Extraire le checksum attendu pour {{ psu_file }}
     ansible.builtin.shell: grep "{{ psu_file }}" {{ oracle_sources }}/checksum.txt | awk '{print $1}'
     register: psu_expected_checksum
+    tags: download_ru
+    when: oracle_version == "19c"
+    changed_when: false
+
+  - name: Vérifier que le checksum a été trouvé pour {{ psu_file }}
+    ansible.builtin.fail:
+      msg: "Le checksum pour le fichier '{{ psu_file }}' n'a pas été trouvé dans le fichier checksum.txt."
+    when: psu_expected_checksum.stdout | length == 0
     tags: download_ru
     when: oracle_version == "19c"
 
@@ -70,10 +93,12 @@
     when: file_check.stat.exists
     tags: download_sw
 
+  # Correction d'un bug latent : la condition vérifie maintenant si 'current_checksum' est définie
+  # avant d'y accéder, évitant ainsi une erreur "undefined variable" si le fichier n'existe pas.
   - name: Téléchargement des binaires Oracle
     ansible.builtin.shell: wget --no-check-certificate --continue {{ oracle_binary_url }} -O {{ oracle_sources }}/{{oracle_zip_filename}}
     tags: download_sw
-    when: not file_check.stat.exists or current_checksum.stdout != expected_checksum.stdout
+    when: not file_check.stat.exists or (current_checksum is defined and current_checksum.stdout != expected_checksum.stdout)
 
   - name: Extraction des binaires Oracle
     ansible.builtin.unarchive: src={{ oracle_sources }}/{{ oracle_zip_filename }}  dest={{ oracle_home }}
@@ -111,10 +136,12 @@
     when: oracle_version == "19c" and opatch_file_check.stat.exists
     tags: download_opatch
 
+  # Correction d'un bug latent : la condition vérifie maintenant si 'opatch_current_checksum' est définie
+  # avant d'y accéder, évitant ainsi une erreur "undefined variable" si le fichier n'existe pas.
   - name: Téléchargement OPatch
     ansible.builtin.shell: wget --no-check-certificate --continue {{ opatch_download_url }} -O /u01/sources/{{opatch_file}}
     tags: download_opatch
-    when: oracle_version == "19c" and (not opatch_file_check.stat.exists or opatch_current_checksum.stdout != opatch_expected_checksum.stdout)
+    when: oracle_version == "19c" and (not opatch_file_check.stat.exists or (opatch_current_checksum is defined and opatch_current_checksum.stdout != opatch_expected_checksum.stdout))
 
   - name: Vérifier si le fichier "/u01/sources/{{psu_file}}" existe
     ansible.builtin.stat:
@@ -129,10 +156,12 @@
     when: oracle_version == "19c" and ru_file_check.stat.exists
     tags: download_ru
 
+  # Correction d'un bug latent : la condition vérifie maintenant si 'psu_current_checksum' est définie
+  # avant d'y accéder, évitant ainsi une erreur "undefined variable" si le fichier n'existe pas.
   - name: Téléchargement du PSU
     ansible.builtin.shell: wget --no-check-certificate --continue {{ psu_download_url }} -O /u01/sources/{{psu_file}}
     tags: download_ru
-    when: oracle_version == "19c" and (not ru_file_check.stat.exists or psu_current_checksum.stdout != psu_expected_checksum.stdout)
+    when: oracle_version == "19c" and (not ru_file_check.stat.exists or (psu_current_checksum is defined and psu_current_checksum.stdout != psu_expected_checksum.stdout))
 
   # Le numéro du patch est extrait du nom du fichier PSU (psu_file).
   # L'expression régulière 'p(\\d+)_' cherche un 'p' suivi d'un ou plusieurs chiffres (capturés dans le groupe 1), puis un '_'.
