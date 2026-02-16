@@ -36,7 +36,7 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
-log_info "Démarrage de l'initialisation pour Oracle 19 Installation..."
+log_info "Démarrage de l'initialisation pour Installation Oracle 19c/26ai ..."
 
 # Récupérer la version de la distribution Linux
 log_info "Détection de la version de Linux..."
@@ -62,10 +62,10 @@ fi
 
 # Installation de la collection Ansible
 log_info "Installation de la collection ansible.posix..."
-ansible-galaxy collection install ansible.posix
+ansible-galaxy collection install ansible.posix --ignore-certs
 
 # Clonage du repository
-log_info "Clonage du repository Oracle 19 Installation..."
+log_info "Clonage du repository Installation Oracle 19c/26ai ..."
 if [[ -d "oracle_19_install" ]]; then
     log_warning "Le répertoire oracle_19_install existe déjà. Suppression..."
     rm -rf oracle_19_install
