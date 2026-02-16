@@ -1,0 +1,139 @@
+---
+# 
+# installation des binaires ORACLE : version 26 ai
+#
+
+  - name: Création du répertoire oracle
+    ansible.builtin.shell: |
+      mkdir -p {{ item }}
+      chown -R oracle:oinstall /$(echo {{ item }} | cut -d"/" -f2)
+      chmod -R 775 /$(echo {{ item }} | cut -d"/" -f2)
+    # ansible.builtin.file: dest={{ item }} mode=775 owner=oracle group=oinstall state=directory recurse=yes
+    loop:
+      - "{{ oracle_base }}"
+      - "{{ oracle_inventory }}"
+      - "{{ oracle_home }}"
+      - "{{ oracle_sources }}"
+      - "{{ oracle_oradata }}"
+      - "{{ oracle_fra }}"
+    tags: createdir
+    
+  - name: vérification de l espace disque disponible sur oracle_base
+    ansible.builtin.shell: df -P {{ oracle_base }} | awk 'END { print $4 }'
+    register: u01size
+    failed_when: u01size.stdout|int < u01_free_space_gb*1024*1024
+    tags: diskfreespace
+
+  - name: vérification de l espace disque disponible sur /tmp
+    ansible.builtin.shell: df -P /tmp | awk 'END { print $4 }'
+    register: tmpsize
+    failed_when: tmpsize.stdout|int < tmp_free_space_gb*1024*1024
+    tags: diskfreespace
+
+  - name: Vérifier si une installation existe ...
+    ansible.builtin.shell: grep "{{ oracle_home }}" "{{ oracle_inventory }}/ContentsXML/inventory.xml" | wc -l
+    register: checkdbswinstall
+    failed_when: checkdbswinstall.stdout != "0"
+    tags: checkifexists
+
+   # telechargement des bianaires Oracle si le fichier n'est pas déjà dans /u01/sources
+  - name: Télécharger le fichier checksum
+    ansible.builtin.shell: wget --no-check-certificate {{ checksum_url }} -O {{ oracle_sources }}/checksum.txt
+    tags: download_sw
+
+  - name: Extraire le checksum attendu pour {{ oracle_zip_filename }}
+    ansible.builtin.shell: grep "{{ oracle_zip_filename }}" {{ oracle_sources }}/checksum.txt | awk '{print $1}'
+    register: expected_checksum
+    tags: download_sw
+    changed_when: false
+
+  - name: Vérifier que le checksum a été trouvé pour {{ oracle_zip_filename }}
+    ansible.builtin.fail:
+      msg: "Le checksum pour le fichier '{{ oracle_zip_filename }}' n'a pas été trouvé dans le fichier checksum.txt."
+    when: expected_checksum.stdout | length == 0
+    tags: download_sw
+
+  - name: Vérifier si le fichier "{{oracle_zip_filename}}" existe
+    ansible.builtin.stat:
+      path: "{{ oracle_sources }}/{{oracle_zip_filename}}"
+    register: file_check
+    tags: download_sw
+
+  - name: Calculer le checksum actuel si le fichier existe
+    ansible.builtin.shell: sha256sum {{ oracle_sources }}/{{oracle_zip_filename}} | awk '{print $1}'
+    register: current_checksum
+    when: file_check.stat.exists
+    tags: download_sw
+
+  # Correction d'un bug latent : la condition vérifie maintenant si 'current_checksum' est définie
+  # avant d'y accéder, évitant ainsi une erreur "undefined variable" si le fichier n'existe pas.
+  - name: Téléchargement des binaires Oracle
+    ansible.builtin.shell: wget --no-check-certificate --continue {{ oracle_binary_url }} -O {{ oracle_sources }}/{{oracle_zip_filename}}
+    tags: download_sw
+    when: not file_check.stat.exists or (current_checksum is defined and current_checksum.stdout != expected_checksum.stdout)
+
+  - name: Extraction des binaires Oracle
+    ansible.builtin.unarchive: src={{ oracle_sources }}/{{ oracle_zip_filename }}  dest={{ oracle_home }}
+    become: true
+    become_method: su
+    become_user: oracle
+    tags: extract_sw
+
+  - name: Copie du fichier de réponse pour installation silencieuse
+    ansible.builtin.template: src=db_install_{{ db_template_version_string }}.j2 dest={{ oracle_sources }}/{{ db_response_file }}
+    tags: responsefile
+
+  - name: Création du script d installation silencieuse
+    ansible.builtin.template: src=run_db_install.sh.j2 dest={{ oracle_sources }}/run_db_install.sh mode=755
+    tags: responsefile
+
+## La commande export est dans le fichier sh de l'étape précédente qui lance l'installation silencieuse.
+#  - name: modification du numero de distib sur Linux 8
+#    ansible.builtin.lineinfile: dest={{ oracle_home }}/cv/admin/cvu_config state=present line="CV_ASSUME_DISTID=OEL7.6"
+#    tags: distid_ol7
+
+  - name: Installation des binaires Oracle
+    ansible.builtin.shell: "{{ oracle_sources }}/run_db_install.sh"
+    register: oradbinstall
+    become: true
+    become_method: su
+    become_user: oracle
+    ignore_errors: true
+    tags: orainstall
+
+  - ansible.builtin.debug: var=oradbinstall.stdout_lines
+    tags: orainstall
+
+  - name: Vérification de l existance du fichier orainstRoot.sh
+    ansible.builtin.stat: path="{{ oracle_inventory }}/orainstRoot.sh"
+    register: orainstRoot
+
+  - name: Exécution du script orainstRoot.sh
+    ansible.builtin.shell: "{{ oracle_inventory }}/orainstRoot.sh"
+    when: orainstRoot.stat.exists
+    tags: runroot
+
+  - name: Exécution du script root.sh
+    ansible.builtin.shell: "{{ oracle_home }}/root.sh"
+    tags: runroot
+
+  - name: Résultat de l installation via OPatch
+    ansible.builtin.shell: "{{ oracle_home }}/OPatch/opatch lspatches"
+    become: true
+    become_method: su
+    become_user: oracle
+    register: opatchls
+    tags: opatch
+
+  - ansible.builtin.debug: var=opatchls.stdout_lines
+    tags: opatch
+
+  # suppression des binaires, du fichier de réponse et du script d'install
+  - name: suppression du fichier de réponse
+    ansible.builtin.file: path={{ oracle_sources }}/{{ db_response_file }} state=absent
+
+  - name: suppression du script d'installation
+    ansible.builtin.file: path={{ oracle_sources }}/run_db_install.sh state=absent
+
+  - name: suppression du binaires
+    ansible.builtin.file: path={{ oracle_sources }}/{{oracle_zip_filename}} state=absent

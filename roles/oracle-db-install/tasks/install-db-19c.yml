@@ -1,6 +1,7 @@
 ---
 # 
-# installation des binaires ORACLE
+# installation des binaires ORACLE : version 19c
+# installation des binaires + opatch + dernier patch RU
 #
 
   - name: Création du répertoire oracle
@@ -57,26 +58,24 @@
     ansible.builtin.shell: grep "{{ opatch_file }}" {{ oracle_sources }}/checksum.txt | awk '{print $1}'
     register: opatch_expected_checksum
     tags: download_opatch
-    when: oracle_version == "19c"
     changed_when: false
 
   - name: Vérifier que le checksum a été trouvé pour {{ opatch_file }}
     ansible.builtin.fail:
       msg: "Le checksum pour le fichier '{{ opatch_file }}' n'a pas été trouvé dans le fichier checksum.txt."
-    when: oracle_version == "19c" and (opatch_expected_checksum.stdout | length == 0)
+    when: opatch_expected_checksum.stdout | length == 0
     tags: download_opatch
 
   - name: Extraire le checksum attendu pour {{ psu_file }}
     ansible.builtin.shell: grep "{{ psu_file }}" {{ oracle_sources }}/checksum.txt | awk '{print $1}'
     register: psu_expected_checksum
     tags: download_ru
-    when: oracle_version == "19c"
     changed_when: false
 
   - name: Vérifier que le checksum a été trouvé pour {{ psu_file }}
     ansible.builtin.fail:
       msg: "Le checksum pour le fichier '{{ psu_file }}' n'a pas été trouvé dans le fichier checksum.txt."
-    when: oracle_version == "19c" and (psu_expected_checksum.stdout | length == 0)
+    when: psu_expected_checksum.stdout | length == 0
     tags: download_ru
 
   - name: Vérifier si le fichier "{{oracle_zip_filename}}" existe
@@ -109,7 +108,7 @@
   - name: Copier le fichier stub.tar
     ansible.builtin.copy: src=stubs.tar dest={{ oracle_home }}/lib/stubs/stubs.tar owner=oracle
     tags: extract_stubs
-    when: oracle_version == "19c" and ansible_distribution_major_version in ["9", "10"]
+    when: ansible_distribution_major_version in ["9", "10"]
 
   # décompression du fichier tar : 
   - name: Extraction des librairies stubs.tar dans OH/lib/stubs/
@@ -118,7 +117,7 @@
     become_method: su
     become_user: oracle
     tags: extract_stubs
-    when: oracle_version == "19c" and ansible_distribution_major_version in ["9", "10"]
+    when: ansible_distribution_major_version in ["9", "10"]
 
    # téléchargement de OPatch et Patch Release Update
   - name: Vérifier si le fichier "/u01/sources/{{opatch_file}}" existe
@@ -126,12 +125,11 @@
       path: "/u01/sources/{{opatch_file}}"
     register: opatch_file_check
     tags: download_opatch
-    when: oracle_version == "19c"
 
   - name: Calculer le checksum actuel pour {{ opatch_file }} si existe
     ansible.builtin.shell: sha256sum /u01/sources/{{opatch_file}} | awk '{print $1}'
     register: opatch_current_checksum
-    when: oracle_version == "19c" and opatch_file_check.stat.exists
+    when: opatch_file_check.stat.exists
     tags: download_opatch
 
   # Correction d'un bug latent : la condition vérifie maintenant si 'opatch_current_checksum' est définie
@@ -139,19 +137,18 @@
   - name: Téléchargement OPatch
     ansible.builtin.shell: wget --no-check-certificate --continue {{ opatch_download_url }} -O /u01/sources/{{opatch_file}}
     tags: download_opatch
-    when: oracle_version == "19c" and (not opatch_file_check.stat.exists or (opatch_current_checksum is defined and opatch_current_checksum.stdout != opatch_expected_checksum.stdout))
+    when: not opatch_file_check.stat.exists or (opatch_current_checksum is defined and opatch_current_checksum.stdout != opatch_expected_checksum.stdout)
 
   - name: Vérifier si le fichier "/u01/sources/{{psu_file}}" existe
     ansible.builtin.stat:
       path: "/u01/sources/{{psu_file}}"
     register: ru_file_check
     tags: download_ru
-    when: oracle_version == "19c"
 
   - name: Calculer le checksum actuel pour {{ psu_file }} si existe
     ansible.builtin.shell: sha256sum /u01/sources/{{psu_file}} | awk '{print $1}'
     register: psu_current_checksum
-    when: oracle_version == "19c" and ru_file_check.stat.exists
+    when: ru_file_check.stat.exists
     tags: download_ru
 
   # Correction d'un bug latent : la condition vérifie maintenant si 'psu_current_checksum' est définie
@@ -159,7 +156,7 @@
   - name: Téléchargement du PSU
     ansible.builtin.shell: wget --no-check-certificate --continue {{ psu_download_url }} -O /u01/sources/{{psu_file}}
     tags: download_ru
-    when: oracle_version == "19c" and (not ru_file_check.stat.exists or (psu_current_checksum is defined and psu_current_checksum.stdout != psu_expected_checksum.stdout))
+    when: not ru_file_check.stat.exists or (psu_current_checksum is defined and psu_current_checksum.stdout != psu_expected_checksum.stdout)
 
   # Le numéro du patch est extrait du nom du fichier PSU (psu_file).
   # L'expression régulière 'p(\\d+)_' cherche un 'p' suivi d'un ou plusieurs chiffres (capturés dans le groupe 1), puis un '_'.
@@ -167,7 +164,6 @@
   - name: Extraire le numéro de patch de psu_file
     ansible.builtin.set_fact:
       patch_number: "{{ psu_file | regex_search('p(\\d+)_', '\\1') | first }}"
-    when: oracle_version == "19c"
 
   # decompression de OPatch dans $ORACLE_HOME
   - name: Installation OPatch dns ORACLE_HOME
@@ -176,7 +172,6 @@
     become_method: su
     become_user: oracle
     tags: patch_db
-    when: oracle_version == "19c"
 
   # extract du patch dans /u01/sources
   - name: unzip du patch
@@ -185,7 +180,6 @@
     become_method: su
     become_user: oracle
     tags: patch_db
-    when: oracle_version == "19c"
 
   - name: Copie du fichier de réponse pour installation silencieuse
     ansible.builtin.template: src=db_install_{{ db_template_version_string }}.j2 dest={{ oracle_sources }}/{{ db_response_file }}
@@ -245,7 +239,6 @@
     become_method: su
     become_user: oracle
     tags: patch_db
-    when: oracle_version == "19c"
 
   - name: Application du patch 
     ansible.builtin.shell: export ORACLE_HOME={{ oracle_home}}; cd {{ oracle_sources }}/{{ patch_number }}; $ORACLE_HOME/OPatch/opatch apply -silent
@@ -255,7 +248,6 @@
     become_method: su
     become_user: oracle
     tags: patch_db
-    when: oracle_version == "19c"
     
   - name: Résultat de l'installation via OPatch
     ansible.builtin.shell: "{{ oracle_home }}/OPatch/opatch lspatches"
@@ -264,11 +256,9 @@
     become_user: oracle
     register: opatchls
     tags: patch_db
-    when: oracle_version == "19c"
 
   - ansible.builtin.debug: var=opatchls.stdout_lines
     tags: patch_db
-    when: oracle_version == "19c"
 
   # suppression des binaires, du fichier de réponse et du script d'install
   - name: suppression du fichier de réponse
@@ -284,14 +274,11 @@
   - name: Nettoyage du répertoire du patch
     ansible.builtin.file: path={{ oracle_sources }}/{{ patch_number }} state=absent
     tags: patch_db
-    when: oracle_version == "19c"
 
   - name: suppression du fichier OPatch
     ansible.builtin.file: path={{ oracle_sources }}/{{ opatch_file }} state=absent
     tags: patch_db
-    when: oracle_version == "19c"
 
   - name: suppression du Patch RU
     ansible.builtin.file: path={{ oracle_sources }}/{{ psu_file }} state=absent
     tags: patch_db
-    when: oracle_version == "19c"

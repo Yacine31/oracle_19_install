@@ -9,11 +9,11 @@
 - name: Vérifier les prérequis pour l'installation
   ansible.builtin.assert:
     that:
-      - ansible_memtotal_mb >= 4096
+      - ansible_memtotal_mb >= 2048
       - ansible_processor_vcpus >= 2
-    msg: "Prérequis non satisfaits pour Oracle : RAM >= 4GB, CPU >= 2"
+    msg: "Prérequis non satisfaits pour Oracle : RAM >= 2GB, CPU >= 2"
   tags: prerequisites
 
-# installation des binaires Oracle DB
-- include_tasks: install_database.yml
-  tags: install_db
+# installation des binaires Oracle DB 19c ou 26ai en fonction de la valeur de oracle_version
+- name: Installation Oracle Database {{ oracle_version }}
+  ansible.builtin.include_tasks: "install-db-{{ oracle_version }}.yml"
