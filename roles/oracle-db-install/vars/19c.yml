@@ -11,7 +11,7 @@ opatch_download_url: "https://kutt.axiome.io/opatch"
 opatch_file: "p6880880_190000_Linux-x86-64.zip"
 
 psu_download_url: "https://kutt.axiome.io/db_ru"
-psu_file: "p33549642_190000_Linux-x86-64.zip"
+psu_file: "p38632161_190000_Linux-x86-64_DBRU_19.30.zip"
 
 
 # Pour le nom du template de fichier de réponse db_install_19.0.0.j2
