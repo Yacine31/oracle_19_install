@@ -13,7 +13,6 @@
    - binutils
    - chrony
    - compat-openssl11
-   - compat-openssl10
    - elfutils-libelf
    - elfutils-libelf-devel
    - fontconfig
