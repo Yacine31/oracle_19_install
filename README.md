@@ -15,38 +15,6 @@ Pour Oracle Linux 9 et 10, l'installation Ansible est légèrement différente d
 ```bash
 # Télécharger et exécuter le script d'initialisation (en tant que root)
 curl -fsSL https://raw.githubusercontent.com/Yacine31/oracle_19_install/main/init_oracle_install.sh | bash
-
-# Ou si vous avez déjà cloné le repo :
-cd oracle_19_install
-./init_oracle_install.sh
-```
-
-**Méthode manuelle :** Si vous préférez exécuter manuellement :
-
-```bash
-#!/bin/bash
-
-# Récupérer la version de la distribution Linux
-linux_version=$(cat /etc/os-release | egrep "^VERSION_ID" | cut -d= -f2 | sed 's/"//g' | cut -d. -f1)
-
-# Vérifier la version et exécuter les commandes appropriées
-if [[ $linux_version == "7" || $linux_version == "8" ]]; then
-    echo "Version Linux 7 ou 8 détectée."
-    dnf install -y oracle-epel-release-el${linux_version}
-    dnf install -y git ansible
-    ansible-galaxy collection install ansible.posix
-elif [[ $linux_version == "9" || $linux_version == "10" ]]; then
-    echo "Version Oracle Linux 9 ou 10 détectée."
-    dnf install -y git ansible-core
-    ansible-galaxy collection install ansible.posix --ignore-certs
-else
-    echo "Version Linux non prise en charge détectée."
-    exit 1
-fi
-
-# cloner le repository :
-echo "Récupération du scripts depuis github."
-git clone https://github.com/Yacine31/oracle_19_install
 ```
 
 Puis changer de répertoire :
