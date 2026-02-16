@@ -38,7 +38,7 @@ if [[ $linux_version == "7" || $linux_version == "8" ]]; then
 elif [[ $linux_version == "9" || $linux_version == "10" ]]; then
     echo "Version Oracle Linux 9 ou 10 détectée."
     dnf install -y git ansible-core
-    ansible-galaxy collection install ansible.posix
+    ansible-galaxy collection install ansible.posix --ignore-certs
 else
     echo "Version Linux non prise en charge détectée."
     exit 1
@@ -59,11 +59,15 @@ cd oracle_19_install
 - oracle-db-install.yml     => installation d'Oracle 19 EE ou SE2 et ajout des scripts d'exploitation
 - oracle-db-postinstall.yml  => configuration postinstall : ajout de différents scripts d'exploitation
 
-1. Exécution Pre- install :
+1. Exécution Pre-install :
 ```bash
-# ⚠️ IMPORTANT : Configurez d'abord les mots de passe dans group_vars/all.yml
+# ⚠️ IMPORTANT : Configurez d'abord les mots de passe et les chemins dans group_vars/all.yml
 ansible-playbook -i hosts oracle-db-preinstall.yml
+ansible-playbook -i hosts oracle-db-preinstall.yml -e 'oracle_version=19c'
+ansible-playbook -i hosts oracle-db-preinstall.yml -e 'oracle_version=26ai'
 ```
+**Par défaut**, si `oracle_version` n'est pas spécifiée, c'est la version **19c** qui sera installée
+
 Parfois ansible ne fonctionne pas sans spécifier le chemin vers python3 :
 ```bash
 ansible-playbook -i hosts oracle-db-preinstall.yml -e 'ansible_python_interpreter=/usr/bin/python3'
@@ -72,6 +76,7 @@ ansible-playbook -i hosts oracle-db-preinstall.yml -e 'ansible_python_interprete
 2. Exécution Install : installation des binaires Oracle et patch
 ```bash
 ansible-playbook -i hosts oracle-db-install.yml 
+ansible-playbook -i hosts oracle-db-install.yml -e 'oracle_version=26ai'
 ```
 
 ## Configuration des variables
