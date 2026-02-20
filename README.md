@@ -65,6 +65,8 @@ oracle_version: "19.0.0"
 oracle_base: "/u01/app/oracle"
 dbhome: "dbhome_1"
 oracle_home: "{{ oracle_base }}/product/{{oracle_version}}/{{ dbhome }}"
+# exemple :
+# oracle_home: "/u01/app/oracle/product/19.0.0/dbhome_1"
 oracle_inventory: "/u01/app/oraInventory"
 oracle_sources: "/u01/sources"
 oracle_oradata: "/u02/oradata/"
