@@ -1,74 +1,47 @@
 ---
-  # ---------------------------------------------------
-  # CRéation des groupes
-  # ---------------------------------------------------
-  - name: Vérifier si les groupes existent
-    ansible.builtin.getent:
-      database: group
-    register: group_facts
-    ignore_errors: true
-    when: full_configuration |bool
-    tags: group
+- name: Création des groupes Oracle
+  ansible.builtin.group:
+    name: "{{ item.group }}"
+    gid: "{{ item.gid }}"
+    state: present
+  loop:
+    - { group: oinstall,  gid: 1001 }
+    - { group: dba,       gid: 1002 }
+    - { group: oper,      gid: 1003 }
+    - { group: backupdba, gid: 1004 }
+    - { group: dgdba,     gid: 1005 }
+    - { group: kmdba,     gid: 1006 }
+    - { group: racdba,    gid: 1007 }
+    - { group: asmadmin,  gid: 1008 }
+    - { group: asmdba,    gid: 1009 }
+    - { group: asmoper,   gid: 1010 }
+  when: full_configuration | bool
+  tags: group
 
-  - name: Création des groupes (seulement si absents)
-    ansible.builtin.group:
-      name: "{{ item.group }}"
-      gid: "{{ item.gid }}"
-      state: present
-    loop:
-        - { group: oinstall, gid: 1001}
-        - { group: dba, gid: 1002 }
-        - { group: oper, gid: 1003 }
-        - { group: backupdba, gid: 1004 }
-        - { group: dgdba, gid: 1005 }
-        - { group: kmdba, gid: 1006 }
-        - { group: racdba, gid: 1007 }
-        - { group: asmadmin, gid: 1008 }
-        - { group: asmdba, gid: 1009 }
-        - { group: asmoper, gid: 1010 }
-    when: full_configuration |bool and item.group not in (group_facts.ansible_facts.getent_group | default({}))
-    tags: group
+- name: Création des utilisateurs oracle et grid
+  ansible.builtin.user:
+    name: "{{ item.username }}"
+    group: "{{ item.primgroup }}"
+    groups: "{{ item.othergroups }}"
+    uid: "{{ item.uid }}"
+    generate_ssh_key: true
+    append: true
+    state: present
+    update_password: on_create
+    password: "{{ item.passwd }}"
+  loop:
+    - { username: oracle, uid: 1001, primgroup: oinstall, othergroups: "dba,asmdba,backupdba,dgdba,kmdba,racdba,oper",           passwd: "{{ oracle_user_password | password_hash('sha512') }}" }
+    - { username: grid,   uid: 1002, primgroup: oinstall, othergroups: "dba,asmdba,backupdba,dgdba,kmdba,racdba,asmoper,asmadmin", passwd: "{{ grid_user_password | password_hash('sha512') }}" }
+  when: full_configuration | bool
+  tags: user
 
-  # ---------------------------------------------------
-  # Création des utilisateurs : password Oracle123 => full configuration
-  # ---------------------------------------------------
-  - name: Vérifier si les utilisateurs existent
-    ansible.builtin.getent:
-      database: passwd
-    register: user_facts
-    ignore_errors: true
-    when: full_configuration |bool
-    tags: user
-
-  - name: Création du compte Oracle et grid (seulement si absents)
-    ansible.builtin.user:
-      name: "{{ item.username }}"
-      group: "{{ item.primgroup }}"
-      groups: "{{ item.othergroups }}"
-      uid: "{{ item.uid }}"
-      generate_ssh_key: yes
-      append: yes
-      state: present
-      update_password: on_create
-      password: "{{ item.passwd }}"
-    loop:
-       - { username: oracle, uid: 1001, primgroup: oinstall, othergroups: "dba,asmdba,backupdba,dgdba,kmdba,racdba,oper", passwd: "{{ oracle_user_password | password_hash('sha512') }}" }
-       - { username: grid, uid: 1002, primgroup: oinstall, othergroups: "dba,asmdba,backupdba,dgdba,kmdba,racdba,asmoper,asmadmin", passwd: "{{ grid_user_password | password_hash('sha512') }}" }
-    when: full_configuration |bool and item.username not in (user_facts.ansible_facts.getent_passwd | default({}))
-    tags: user
-
-
-  # --------------------------------------------------- 
-  # Ajout du compte oracle et grid au sudoers
-  # ---------------------------------------------------
-  - name: Ajout du compte oracle et grid au sudoers
-    ignore_errors: true
-    ansible.builtin.template:
-      src: sudoers.j2
-      dest: "/etc/sudoers.d/{{ item }}"
-      owner: root
-      mode: "0600"
-    loop:
-      - oracle
-      - grid
-    tags: sudoadd
+- name: Ajout des comptes oracle et grid au sudoers
+  ansible.builtin.template:
+    src: sudoers.j2
+    dest: "/etc/sudoers.d/{{ item }}"
+    owner: root
+    mode: "0600"
+  loop:
+    - oracle
+    - grid
+  tags: sudoadd
