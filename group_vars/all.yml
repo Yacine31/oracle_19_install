@@ -28,9 +28,9 @@ secure_configuration: false
 
 scripts_dir: "/home/oracle/scripts"
 
-# Mots de passe utilisateurs système (en clair - seront hashés automatiquement)
-oracle_user_password: "Oracle123"
-grid_user_password: "Grid123"
+# Mots de passe utilisateurs système (définis dans group_vars/vault.yml)
+oracle_user_password: "{{ vault_oracle_user_password }}"
+grid_user_password: "{{ vault_grid_user_password }}"
 
 # Édition d'installation Oracle (EE = Enterprise Edition, SE2 = Standard Edition 2)
 oracle_install_edition: "EE"

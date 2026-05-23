@@ -36,6 +36,10 @@ venv/
 # Claude Code
 CLAUDE.md
 
+# Ansible Vault password file
+.vault_pass
+*.vault_pass
+
 # Sensitive files (uncomment if needed)
 # inventory/
 # vars/vault.yml (if not encrypted)
