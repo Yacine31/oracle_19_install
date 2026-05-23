@@ -1,8 +1,4 @@
 ---
-#
-# Validations préalables pour le rôle oracle-db-postinstall
-#
-
 - name: Créer le répertoire scripts_dir s'il n'existe pas
   ansible.builtin.file:
     path: "{{ scripts_dir }}"
@@ -10,7 +6,7 @@
     owner: oracle
     group: oinstall
     mode: '0755'
-    recurse: yes
+    recurse: true
   tags: prerequisites
 
 - name: Vérifier que ORACLE_HOME est accessible

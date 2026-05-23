@@ -1,8 +1,4 @@
 ---
-#
-# Configuration des services système et tâches cron
-#
-
 - name: Copie du script de démarrage automatique des bases Oracle
   ansible.builtin.template:
     src: dbora.service.j2
@@ -14,7 +10,7 @@
 - name: Activation du service de démarrage automatique
   ansible.builtin.systemd:
     name: dbora
-    enabled: yes
+    enabled: true
   notify: Recharger systemd
   tags: dbora_init
 

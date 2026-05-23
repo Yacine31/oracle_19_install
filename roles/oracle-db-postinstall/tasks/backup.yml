@@ -1,8 +1,4 @@
 ---
-#
-# Configuration des sauvegardes automatiques Oracle
-#
-
 - name: Création du répertoire de sauvegarde /u04
   ansible.builtin.file:
     dest: /u04
@@ -10,13 +6,13 @@
     owner: oracle
     group: oinstall
     state: directory
-    recurse: yes
+    recurse: true
   tags: backup
 
 - name: Installation des packages mutt et curl pour les emails
   ansible.builtin.package:
     name: "{{ item }}"
-    state: latest
+    state: present
   loop:
     - mutt
     - curl

@@ -1,8 +1,4 @@
 ---
-#
-# post configuration d'une installation de base de données Oracle
-#
-
 - name: Vérifier les prérequis pour la post-installation
   ansible.builtin.assert:
     that:
@@ -10,27 +6,14 @@
     msg: "Prérequis non satisfaits : RAM >= 2GB"
   tags: prerequisites
 
-- name: Inclure les validations des chemins et fichiers
-  ansible.builtin.include_tasks: validations.yml
+- ansible.builtin.include_tasks: validations.yml
   tags: prerequisites
 
-# ---------------------------------------------------
-# Gestion des scripts SQL
-# ---------------------------------------------------
-- name: Inclure les tâches de gestion des scripts
-  ansible.builtin.include_tasks: scripts.yml
+- ansible.builtin.include_tasks: scripts.yml
   tags: scripts
 
-# ---------------------------------------------------
-# Configuration des sauvegardes automatiques
-# ---------------------------------------------------
-- name: Inclure les tâches de configuration des sauvegardes
-  ansible.builtin.include_tasks: backup.yml
+- ansible.builtin.include_tasks: backup.yml
   tags: backup
 
-# ---------------------------------------------------
-# Configuration des services système et cron
-# ---------------------------------------------------
-- name: Inclure les tâches de configuration des services
-  ansible.builtin.include_tasks: services.yml
+- ansible.builtin.include_tasks: services.yml
   tags: [dbora_init, oracle_cleaner, logrotate]
