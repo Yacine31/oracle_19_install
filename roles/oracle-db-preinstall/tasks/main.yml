@@ -1,64 +1,34 @@
 ---
-  - name: Vérification de la distribution, la version et le kernel
-    ansible.builtin.assert:
-     that: ansible_architecture == 'x86_64' and ansible_os_family == 'RedHat' and ansible_system == 'Linux'
-    tags: oscheck
+- name: Vérification de la distribution, la version et le kernel
+  ansible.builtin.assert:
+    that: ansible_architecture == 'x86_64' and ansible_os_family == 'RedHat' and ansible_system == 'Linux'
+  tags: oscheck
 
-  # ---------------------------------------------------
-  # Ajout du fichier de paramètres : Redhat_x.yml ...
-  # ---------------------------------------------------
-  - name: ajout des paramètres spécifique à l'OS
-    ansible.builtin.include_vars: "{{ ansible_os_family }}_{{ ansible_distribution_major_version }}.yml"
+- name: Ajout des paramètres spécifiques à l'OS
+  ansible.builtin.include_vars: "{{ ansible_os_family }}_{{ ansible_distribution_major_version }}.yml"
 
-  - name: Vérifier les prérequis système
-    ansible.builtin.assert:
-      that:
-        - ansible_memtotal_mb >= 2048
-        - ansible_processor_vcpus >= 2
-      msg: "Prérequis non satisfaits : RAM >= 2GB, CPU >= 2"
-    tags: prerequisites
+- name: Vérifier les prérequis système
+  ansible.builtin.assert:
+    that:
+      - ansible_memtotal_mb >= 2048
+      - ansible_processor_vcpus >= 2
+    msg: "Prérequis non satisfaits : RAM >= 2GB, CPU >= 2"
+  tags: prerequisites
 
-  # ---------------------------------------------------
-  # configuration des packages necessaires pour Linux
-  # ---------------------------------------------------
-  - ansible.builtin.include_tasks: os_configuration.yml
-    tags: packages
+- ansible.builtin.include_tasks: os_configuration.yml
+  tags: packages
 
-  # ---------------------------------------------------
-  # configuration réseau
-  # ---------------------------------------------------
-  - ansible.builtin.include_tasks: network_configuration.yml
-    tags: network
+- ansible.builtin.include_tasks: network_configuration.yml
+  tags: network
 
-  # ---------------------------------------------------
-  # configuration Linux : grub
-  # ---------------------------------------------------
-  - ansible.builtin.include_tasks: grub_configuration.yml
-    tags: grub
+- ansible.builtin.include_tasks: grub_configuration.yml
+  tags: grub
 
-  # ---------------------------------------------------
-  # configuration Linux : Sécurisation
-  # ---------------------------------------------------
-  - ansible.builtin.include_tasks: secure_configuration.yml
-    tags: security
+- ansible.builtin.include_tasks: secure_configuration.yml
+  tags: security
 
-  # ---------------------------------------------------
-  # configuration Linux : Utilisateurs et groupes Oracle
-  # ---------------------------------------------------
-  - ansible.builtin.include_tasks: users_configuration.yml
-    tags: users
+- ansible.builtin.include_tasks: users_configuration.yml
+  tags: users
 
-  # ---------------------------------------------------
-  # configuration Linux : ajout de packages supplémentaires
-  # ---------------------------------------------------
-  - ansible.builtin.include_tasks: rpm_tools.yml
-    tags: rpm
-
-  # ---------------------------------------------------
-  # configuration Linux : Création des répertoires Oracle
-  # => la creation des répertoires se fait dans le role db-install
-  # ---------------------------------------------------
-  # - include: dir_creation.yml
-  
-
-
+- ansible.builtin.include_tasks: rpm_tools.yml
+  tags: rpm
