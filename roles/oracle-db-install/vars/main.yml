@@ -1,3 +1,2 @@
 ---
-# Variables communes spécifiques au rôle oracle-db-install
-# Les vars par défaut sont dans defaults/main.yml
+checksum_url: "https://kutt.axiome.io/checksum"
