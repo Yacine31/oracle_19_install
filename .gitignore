@@ -23,7 +23,18 @@ __pycache__/
 *.tmp
 *.swp
 *.bak
-.vscode
+.vscode/
+
+# Python virtual environments
+venv/
+.venv/
+
+# Ansible cache et runtime
+.cache/
+.ansible/
+
+# Claude Code
+CLAUDE.md
 
 # Sensitive files (uncomment if needed)
 # inventory/
