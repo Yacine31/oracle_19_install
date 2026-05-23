@@ -1,163 +1,142 @@
 ---
-  # ---------------------------------------------------
-  # configuration des packages necessaires pour Linux
-  # ---------------------------------------------------
-  - name: Installation des packages nécessaires
-    ansible.builtin.package:
-      name: "{{ linux_packages }}"
-      state: latest
-    tags: [packages, rpm_packages]
+- name: Installation des packages nécessaires
+  ansible.builtin.package:
+    name: "{{ linux_packages }}"
+    state: latest
+  tags: [packages, rpm_packages]
 
-  # ---------------------------------------------------
-  # configuration du serveur Chronyd - Linux >= 7
-  # ---------------------------------------------------
-  - name: start chronyd
-    ansible.builtin.service: name=chronyd  state=started  enabled=yes
-    ignore_errors: true
-    tags: services
+- name: Démarrage et activation de chronyd
+  ansible.builtin.service:
+    name: chronyd
+    state: started
+    enabled: true
+  ignore_errors: true
+  tags: services
 
-  # ---------------------------------------------------
-  # Activation du nscd : Name Service Cache Daemon pour palier aux
-  # problèmes de perte de DNS
-  # ---------------------------------------------------
-  - name: activate nscd
-    ansible.builtin.service: name=nscd state=started  enabled=yes
-    ignore_errors: true
+- name: Démarrage et activation de nscd
+  ansible.builtin.service:
+    name: nscd
+    state: started
+    enabled: true
+  ignore_errors: true
 
-  # ---------------------------------------------------
-  # Activation de rsyslog : non configuré parfois sur Oracle Linux
-  # ---------------------------------------------------
-  - name: activate rsyslog
-    ansible.builtin.service: name=rsyslog state=started  enabled=yes
-    ignore_errors: true
+- name: Démarrage et activation de rsyslog
+  ansible.builtin.service:
+    name: rsyslog
+    state: started
+    enabled: true
+  ignore_errors: true
 
-  # --------------------------------------------------- 
-  # configuration Linux : Selinux
-  # ---------------------------------------------------
-  - name: Desactiver Selinux (de façon permanente)
-    ansible.builtin.selinux: state=disabled
-    register: selinux
-    tags: selinux
-  
-  - name: Disactiver Selinux (runtime)
-    ansible.builtin.shell: setenforce 0
-    ignore_errors: true
-    tags: selinux
+- name: Désactivation de SELinux (permanent)
+  ansible.builtin.selinux:
+    state: disabled
+  register: selinux
+  tags: selinux
 
-  # ---------------------------------------------------
-  # configuration Linux : les services
-  # ---------------------------------------------------
-  - name: arrêter et désactiver les services inutils
-    loop: "{{ linux_services }}"
-    ansible.builtin.service: name={{ item }}  state=stopped  enabled=no
-    tags: linuxservices
-    ignore_errors: true
+- name: Désactivation de SELinux (runtime)
+  ansible.builtin.command: setenforce 0
+  failed_when: false
+  changed_when: false
+  tags: selinux
 
-  #------------------------------------------------------------------------------------
-  # configuration Linux : Paramètres du kernel
-  #------------------------------------------------------------------------------------
-#  - name: Linux - Ajustement des paramètres du Kernel dans /etc/sysctl.d/oracle_sysctl.conf
-#      state=present reload=yes ignoreerrors=yes sysctl_set=yes sysctl_file=/etc/sysctl.d/99-oracle-sysctl.conf 
-  - name: Linux - Ajustement des paramètres du Kernel dans /etc/sysctl.d/99-oracle-database-preinstall-19c-sysctl.conf
-    ansible.builtin.sysctl:
-      name={{ item.name }} value={{ item.value }}
-      state=present reload=yes ignoreerrors=yes sysctl_set=yes 
-      sysctl_file=/etc/sysctl.d/99-oracle-database-preinstall-19c-sysctl.conf 
-    loop: "{{ oracle_sysconfig }}"
-    tags: sysctl.conf 
+- name: Arrêt et désactivation des services inutiles
+  ansible.builtin.service:
+    name: "{{ item }}"
+    state: stopped
+    enabled: false
+  loop: "{{ linux_services }}"
+  ignore_errors: true
+  tags: linuxservices
 
-  - name: Configuration PAM
-    ansible.builtin.lineinfile: dest=/etc/pam.d/login state=present line="session required pam_limits.so"
-    tags: pamconfig
+- name: Ajustement des paramètres kernel Oracle
+  ansible.builtin.sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: true
+    ignoreerrors: true
+    sysctl_set: true
+    sysctl_file: /etc/sysctl.d/99-oracle-database-preinstall-19c-sysctl.conf
+  loop: "{{ oracle_sysconfig }}"
+  tags: sysctl.conf
 
-#    ansible.builtin.lineinfile: dest=/etc/security/limits.d/oracle_seclimits.conf create=yes state=present line={{ item }}
-  - name: Linux - Ajustement des limits pour Oracle dans /etc/security/limits.d/oracle-database-preinstall-19c.conf
-    ansible.builtin.lineinfile: dest=/etc/security/limits.d/oracle-database-preinstall-19c.conf create=yes state=present line={{ item }}
-    loop: "{{ oracle_seclimits }}"
-    tags: seclimit
+- name: Configuration PAM
+  ansible.builtin.lineinfile:
+    dest: /etc/pam.d/login
+    state: present
+    line: "session required pam_limits.so"
+  tags: pamconfig
 
+- name: Ajustement des limits Oracle
+  ansible.builtin.lineinfile:
+    dest: /etc/security/limits.d/oracle-database-preinstall-19c.conf
+    create: true
+    state: present
+    line: "{{ item }}"
+  loop: "{{ oracle_seclimits }}"
+  tags: seclimit
 
-  # ---------------------------------------------------
-  # Shell : aliases bash & oracle
-  # ---------------------------------------------------
-  - name: Ajout du fichier z_oracle dans /etc/profile.d
-    copy: src=z_oracle.sh dest=/etc/profile.d/z_oracle.sh owner=root mode=644
-    tags: z_oracle
+- name: Ajout du profil Oracle dans /etc/profile.d
+  ansible.builtin.copy:
+    src: z_oracle.sh
+    dest: /etc/profile.d/z_oracle.sh
+    owner: root
+    mode: "0644"
+  tags: z_oracle
 
-  - name: BASH - Ajout du fichier z_bash_aliases dans /etc/profile.d
-    copy: src=z_bash_aliases.sh dest=/etc/profile.d/z_bash_aliases.sh owner=root mode=644
-    tags: bash_alias
+- name: Ajout des alias bash dans /etc/profile.d
+  ansible.builtin.copy:
+    src: z_bash_aliases.sh
+    dest: /etc/profile.d/z_bash_aliases.sh
+    owner: root
+    mode: "0644"
+  tags: bash_alias
 
-  - name: BASH - ajout de ignore-case pour autocompletion avec TAB
-    ansible.builtin.lineinfile: dest=/etc/inputrc line="set completion-ignore-case On" create=yes state=present
-    tags: bash_tab
+- name: Activation de l'autocomplétion sans tenir compte de la casse
+  ansible.builtin.lineinfile:
+    dest: /etc/inputrc
+    line: "set completion-ignore-case On"
+    create: true
+    state: present
+  tags: bash_tab
 
-  - name: Desactivation de la commande crontab -r 
-    ansible.builtin.lineinfile: dest=/etc/profile.d/z_crontab_r.sh
-          line='crontab () { [[ $@ =~ -[iel]*r ]] && echo "option -r (remove) not allowed" || command crontab "$@" ;}'
-          state=present
-          create=yes
-    tags: bash_cron_r
+- name: Désactivation de la commande crontab -r
+  ansible.builtin.lineinfile:
+    dest: /etc/profile.d/z_crontab_r.sh
+    line: 'crontab () { [[ $@ =~ -[iel]*r ]] && echo "option -r (remove) not allowed" || command crontab "$@" ;}'
+    state: present
+    create: true
+  tags: bash_cron_r
 
-  - name: Journalctl - Limiter la taille disque utilisée à 500M max
-    ansible.builtin.lineinfile: dest=/etc/systemd/journald.conf line="SystemMaxUse=500M"
-    tags: Journalctl
+- name: Limitation de la taille des logs journald à 500M
+  ansible.builtin.lineinfile:
+    dest: /etc/systemd/journald.conf
+    line: "SystemMaxUse=500M"
+  tags: journalctl
 
-  # --------------------------------------------------- 
-  # configuration Linux : Mode panic
-  # ---------------------------------------------------
-  - name: Configuratio du mode panic sur perte du /
-    ansible.builtin.shell: free_form="tune2fs -e panic `df -P / |tail -1 | awk '{print $1}'`"
-    tags: mode_panic
+- name: Configuration du mode panic sur perte du /
+  ansible.builtin.command: "tune2fs -e panic {{ ansible_mounts | selectattr('mount', 'equalto', '/') | map(attribute='device') | first }}"
+  changed_when: false
+  tags: mode_panic
 
-  - name: Configuration du mode panic sur bug du kernel
-    ansible.builtin.sysctl: 
-      name=kernel.panic_on_oops value=1 state=present reload=yes ignoreerrors=yes
-      sysctl_file=/etc/sysctl.d/99-oracle-database-preinstall-19c-sysctl.conf
-    tags: mode_panic
+- name: Configuration du mode panic sur bug kernel
+  ansible.builtin.sysctl:
+    name: kernel.panic_on_oops
+    value: "1"
+    state: present
+    reload: true
+    ignoreerrors: true
+    sysctl_file: /etc/sysctl.d/99-oracle-database-preinstall-19c-sysctl.conf
+  tags: mode_panic
 
-  # --------------------------------------------------- 
-  # configuration du démarrage en mode 3 par défaut
-  # ---------------------------------------------------
-  - name: Configuration du mode 3 comme mode de démarrage par défaut
-    ansible.builtin.shell: systemctl set-default multi-user.target
-    tags: init3
+- name: Configuration du démarrage en mode multi-user (runlevel 3)
+  ansible.builtin.command: systemctl set-default multi-user.target
+  changed_when: false
+  tags: init3
 
-  # ---------------------------------------------------
-  # Fix for Oracle on OL10
-  # ---------------------------------------------------
-  - name: Fix libnsl.so.1 for Oracle on OL10
-    ansible.builtin.shell: |
-      rm -f /usr/lib64/libnsl.so.1
-      ln -s /usr/lib64/libnsl.so.3.0.0 /usr/lib64/libnsl.so.1
-    when: ansible_distribution_major_version == "10"
-    tags: ol10_fix
-
-  # ---------------------------------------------------
-  # configuration Linux : config oracle pour logrotate
-  # Gestion des fichiers logs seulement (archivage et réinitialisation)
-  # ---------------------------------------------------
-  # - name: Gestion des logs Oracle - copie du fichier de configuration pour logrotate
-  #   template: src=logrotate_oracle.j2 dest=/etc/logrotate.d/oracle mode=644 owner=root group=root
-  #   tags: logrotate
-
-  # --------------------------------------------------- 
-  # configuration Linux : oracle cleaner dans cron.daily
-  # Gestion des fichiers trace et xml : purge des anciens fichiers
-  # ---------------------------------------------------
-  # - name: Netoyage ADR Oracle - copie du fichier de configuration pour cron
-  #   template: src=cron_oracle_cleaner.j2 dest=/etc/cron.daily/oracle_cleaner mode=755 owner=root group=root
-  #   tags: cron_daily
-
-  # --------------------------------------------------- 
-  # copy du fichier dbora.service dans /lib/systemd/system pour redémmarage auto
-  # ---------------------------------------------------
-  # - name: Copie du script de démarrage auto des bases Oracle
-  #   template: src=dbora.service.j2 dest=/lib/systemd/system/dbora.service owner=root mode=644
-  #   tags: dbora_init
-
-  # - name: Activation par systemctl du script de démarrage auto des bases Oracle
-  #   systemd: name=dbora daemon_reload=yes enabled=yes
-  #   tags: dbora_init
-
-
+- name: Fix libnsl.so.1 pour Oracle sur OL10
+  ansible.builtin.shell: |
+    rm -f /usr/lib64/libnsl.so.1
+    ln -s /usr/lib64/libnsl.so.3.0.0 /usr/lib64/libnsl.so.1
+  when: ansible_distribution_major_version == "10"
+  tags: ol10_fix
