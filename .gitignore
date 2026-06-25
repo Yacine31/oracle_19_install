@@ -36,7 +36,8 @@ venv/
 # Claude Code
 CLAUDE.md
 
-# Ansible Vault password file (local overrides uniquement)
+# Ansible Vault password file
+.vault_pass
 *.local.vault_pass
 
 # Sensitive files (uncomment if needed)

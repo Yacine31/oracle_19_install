@@ -83,9 +83,9 @@ full_configuration: true
 secure_configuration: false
 scripts_dir: "/home/oracle/scripts"
 
-# Mots de passe utilisateurs système (en clair - seront hashés automatiquement)
-oracle_user_password: "Oracle123"
-grid_user_password: "Grid123"
+# Mots de passe utilisateurs système (définis dans group_vars/vault.yml)
+oracle_user_password: "{{ vault_oracle_user_password }}"
+grid_user_password: "{{ vault_grid_user_password }}"
 
 # Édition Oracle : "EE" (Enterprise Edition) ou "SE2" (Standard Edition 2)
 oracle_install_edition: "EE"
@@ -97,20 +97,38 @@ Les variables spécifiques à chaque version (binaires, patches) sont dans `role
 
 ## Personnalisation des variables
 
-### Important : Configuration des mots de passe utilisateurs
+### Important : Configuration des mots de passe utilisateurs (Ansible Vault)
 
-**Avant de lancer `oracle-db-preinstall.yml`, vous devez configurer les mots de passe des utilisateurs système :**
+Les mots de passe sont stockés chiffrés dans `group_vars/vault.yml` via Ansible Vault. Ils ne doivent jamais apparaître en clair dans le dépôt.
+
+**Créer ou modifier le fichier vault :**
 
 ```bash
-vi group_vars/all.yml
+# Créer le fichier vault (première fois)
+ansible-vault create group_vars/vault.yml
+
+# Modifier les mots de passe
+ansible-vault edit group_vars/vault.yml
 ```
+
+Le fichier vault contient :
 
 ```yaml
-oracle_user_password: "VotreMotDePasseOracle"
-grid_user_password: "VotreMotDePasseGrid"
+vault_oracle_user_password: "VotreMotDePasseOracle"
+vault_grid_user_password: "VotreMotDePasseGrid"
 ```
 
-**Note :** Les mots de passe sont stockés en clair dans le fichier mais seront automatiquement hashés (SHA-512) lors de la création des utilisateurs.
+**Fournir le mot de passe du vault à l'exécution :**
+
+Le mot de passe du vault est stocké dans le fichier `.vault_pass` à la racine du dépôt (non commité). `ansible.cfg` pointe automatiquement vers ce fichier — aucune option supplémentaire n'est nécessaire en ligne de commande.
+
+```bash
+# Créer le fichier .vault_pass avec le mot de passe du vault
+echo "VotreMotDePasseVault" > .vault_pass
+chmod 600 .vault_pass
+```
+
+**Note :** Les mots de passe sont automatiquement hashés (SHA-512) lors de la création des utilisateurs.
 
 ### Modification des variables communes
 
@@ -144,7 +162,9 @@ ansible-playbook -i hosts oracle-db-install.yml --extra-vars "oracle_base=/opt/o
 ```
 oracle_19_install/
 ├── group_vars/
-│   └── all.yml                        # Variables communes à tous les rôles
+│   ├── all.yml                        # Variables communes à tous les rôles
+│   └── vault.yml                      # Mots de passe chiffrés (Ansible Vault)
+├── .vault_pass                        # Mot de passe du vault (non commité, dans .gitignore)
 ├── roles/
 │   ├── oracle-db-preinstall/          # Configuration système pré-installation
 │   │   ├── tasks/                     # os, grub, réseau, sécurité, utilisateurs
