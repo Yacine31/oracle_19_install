@@ -3,15 +3,15 @@
 
 # Variables pour l'installation d'Oracle 19c
 oracle_binary_url: "https://kutt.axiome.io/db19300"
-oracle_zip_filename: "LINUX.X64_193000_db_home.zip"
+oracle_zip_filename: "V982063-01_Oracle_Database_19.3.0.0.0_for_Linux_x86-64.zip"
 
 checksum_url: "https://kutt.axiome.io/checksum"
 
 opatch_download_url: "https://kutt.axiome.io/opatch"
-opatch_file: "p6880880_190000_Linux-x86-64.zip"
+opatch_file: "p6880880_190000_Linux-x86-64_OPatch_12.2.0.1.51.zip"
 
 psu_download_url: "https://kutt.axiome.io/db_ru"
-psu_file: "p38632161_190000_Linux-x86-64_DBRU_19.30.zip"
+psu_file: "p39034528_190000_Linux-x86-64_DBRU_19.31.zip"
 
 
 # Pour le nom du template de fichier de réponse db_install_19.0.0.j2
